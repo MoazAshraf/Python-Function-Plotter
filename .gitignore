@@ -1,6 +1,9 @@
-# SDLC Files
+### SDLC Files ###
 ANALYSIS.md
 Tasks.txt
+
+### Venv ###
+devenv/
 
 # Created by https://www.toptal.com/developers/gitignore/api/vscode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=vscode,python
@@ -152,7 +155,6 @@ Thumbs.db
 
 # profiling data
 .prof
-
 
 ### vscode ###
 .vscode/*
