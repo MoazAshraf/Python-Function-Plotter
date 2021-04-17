@@ -3,16 +3,18 @@
 import sys
 from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QLabel
+from plotter.mainwidget import MainWidget
+
 
 if __name__ == "__main__":
     # create the Qt application
     app = QApplication([])
 
-    # create and show the widget placeholder
-    label = QLabel("Main Widget Placeholder", alignment=QtCore.Qt.AlignCenter)
-    label.resize(600, 400)
-    label.setWindowTitle("Function Plotter")
-    label.show()
+    # create and show the main widget
+    widget = MainWidget()
+    widget.resize(600, 400)
+    widget.setWindowTitle("Function Plotter")
+    widget.show()
 
     # run the main Qt loop
     sys.exit(app.exec_())
