@@ -1,5 +1,5 @@
 ## The main widget contains the whole user interface and is the widget directly
-## rendered by the application
+## rendered by the application. Represents the View in the MVC pattern.
 
 from PySide2 import QtCore
 from PySide2.QtWidgets import (
