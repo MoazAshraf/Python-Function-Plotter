@@ -58,6 +58,12 @@ class Operand(object):
             return str(self.value)
 
 
+class TreeNode(object):
+    def __init__(self, key, left=None, right=None):
+        self.key = key
+        self.left = left
+        self.right = right
+
 class Parser(object):
     def __init__(self):
         pass
@@ -105,7 +111,7 @@ class Parser(object):
                     postfix.append(stack.pop())
                 stack.append(op)
 
-        # push remaining operands
+        # push any remaining operators
         while stack:
             postfix.append(stack.pop())
         
