@@ -1,5 +1,5 @@
 import pytest
-from plotter.parser import Parser, Operand, Operator
+from plotter.parser import Parser, Operand, Operator, TreeNode
 
 
 class TestOperandEquality(object):
@@ -64,7 +64,7 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
-                Operator.SUB, Operand(value=1.0)]
+                 Operator.SUB, Operand(value=1.0)]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operator.ADD,
                     Operand(value=1.0), Operator.SUB]
@@ -77,7 +77,7 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
-                Operator.MUL, Operand(value=1.0)]
+                 Operator.MUL, Operand(value=1.0)]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
                     Operator.MUL, Operator.ADD]
@@ -90,7 +90,7 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [Operand(value=4.0), Operator.MUL, Operand(value=2.0),
-                Operator.ADD, Operand(value=1.0)]
+                 Operator.ADD, Operand(value=1.0)]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
                     Operand(value=1.0), Operator.ADD]
@@ -103,12 +103,12 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [Operand(value=4.0), Operator.MUL, Operand(is_x=True),
-                Operator.ADD, Operand(value=1.0), Operator.SUB,
-                Operand(value=8.0), Operator.POW, Operand(value=9.0),
-                Operator.DIV, Operand(value=23.0), Operator.DIV,
-                Operand(value=9.0), Operator.MUL, Operand(value=4.0),
-                Operator.SUB, Operand(is_x=True), Operator.POW,
-                Operand(value=3.0)]
+                 Operator.ADD, Operand(value=1.0), Operator.SUB,
+                 Operand(value=8.0), Operator.POW, Operand(value=9.0),
+                 Operator.DIV, Operand(value=23.0), Operator.DIV,
+                 Operand(value=9.0), Operator.MUL, Operand(value=4.0),
+                 Operator.SUB, Operand(is_x=True), Operator.POW,
+                 Operand(value=3.0)]
 
         expected = [Operand(value=4.0), Operand(is_x=True), Operator.MUL,
                     Operand(value=1.0), Operator.ADD, Operand(value=8.0),
@@ -127,7 +127,7 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [Operand(value=4.0), Operator.MUL, Operand(value=2.0),
-                Operator.ADD]
+                 Operator.ADD]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
                     Operator.ADD]
@@ -140,8 +140,171 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [Operator.ADD, Operand(value=4.0), Operator.MUL,
-                Operand(value=2.0)]
+                 Operand(value=2.0)]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
                     Operator.ADD]
         assert parser.infix_to_postfix(infix) == expected
+    
+    def test_invalid_3(self):
+        """
+        infix = 4 + 2 1
+        expected = 4 2 1 +
+        """
+        parser = Parser()
+        infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
+                 Operand(value=1.0)]
+
+        expected = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
+                    Operator.ADD]
+        assert parser.infix_to_postfix(infix) == expected
+
+
+class TestTreeEquality(object):
+    def test_equal(self):
+        tree_a = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        tree_b = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        assert tree_a == tree_b
+    
+    def test_keys_different(self):
+        tree_a = TreeNode(Operator.SUB,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        tree_b = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        assert tree_a != tree_b
+    
+    def test_right_different(self):
+        tree_a = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=3.0)))
+        
+        tree_b = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        assert tree_a != tree_b
+    
+    def test_left_different(self):
+        tree_a = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=1.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        tree_b = TreeNode(Operator.ADD,
+                 left=TreeNode(Operand(value=4.0)),
+                 right=TreeNode(Operand(value=2.0)))
+        
+        assert tree_a != tree_b
+
+
+class TestPostfixToExprTree(object):
+    def test_add(self):
+        """
+        postfix = 4 2 +
+        expected:
+            +
+          4   2
+        """
+
+        parser = Parser()
+
+        postfix = [Operand(value=4.0), Operand(value=2.0), Operator.ADD]
+        expected = TreeNode(Operator.ADD,
+                        left=TreeNode(Operand(value=4.0)),
+                        right=TreeNode(Operand(value=2.0)))
+        output = parser.postfix_to_expr_tree(postfix)
+        assert output == expected
+    
+    def test_mul_add(self):
+        """
+        postfix = 4 2 * 1 +
+        expected:
+                 +
+              *     1
+            4   2
+        """
+        
+        parser = Parser()
+
+        postfix = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
+                   Operand(value=1.0), Operator.ADD]
+        expected = TreeNode(Operator.ADD,
+                        left=TreeNode(Operator.MUL,
+                            left=TreeNode(Operand(value=4.0)),
+                            right=TreeNode(Operand(value=2.0))),
+                        right=TreeNode(Operand(value=1.0)))
+        output = parser.postfix_to_expr_tree(postfix)
+
+        assert output == expected
+
+    def test_add_mul(self):
+        """
+        postfix = 4 2 1 * +
+        expected:
+                 +
+              4     *
+                  2   1
+        """
+        
+        parser = Parser()
+
+        postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
+                   Operator.MUL, Operator.ADD]
+        expected = TreeNode(Operator.ADD,
+                        left=TreeNode(Operand(value=4.0)),
+                        right=TreeNode(Operator.MUL,
+                            left=TreeNode(Operand(value=2.0)),
+                            right=TreeNode(Operand(value=1.0))))
+        output = parser.postfix_to_expr_tree(postfix)
+
+        assert output == expected
+
+    def test_invalid_1_syntaxerror(self):
+        """
+        postfix = 4 2 * +
+        expected: SyntaxError
+        """
+        
+        parser = Parser()
+
+        postfix = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
+                   Operator.ADD]
+        
+        with pytest.raises(SyntaxError):
+            parser.postfix_to_expr_tree(postfix)
+    
+    def test_invalid_2_syntaxerror(self):
+        """
+        postfix = 4 2 1 +
+        expected: SyntaxError
+        """
+        
+        parser = Parser()
+
+        postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
+                   Operator.ADD]
+        
+        with pytest.raises(SyntaxError):
+            parser.postfix_to_expr_tree(postfix)
+
+    def test_invalid_3_syntaxerror(self):
+        """
+        postfix = + 4 2
+        expected: SyntaxError
+        """
+        
+        parser = Parser()
+
+        postfix = [Operator.ADD, Operand(value=4.0), Operand(value=2.0)]
+        
+        with pytest.raises(SyntaxError):
+            parser.postfix_to_expr_tree(postfix)

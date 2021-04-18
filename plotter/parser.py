@@ -52,7 +52,7 @@ class Operand(object):
             return self.value == other.value
     
     def __str__(self):
-        if is_x:
+        if self.is_x:
             return 'x'
         else:
             return str(self.value)
@@ -63,6 +63,15 @@ class TreeNode(object):
         self.key = key
         self.left = left
         self.right = right
+    
+    def __eq__(self, other):
+        if not isinstance(other, TreeNode):
+            return False
+        
+        return (self.key == other.key and
+                self.left == other.left and
+                self.right == other.right)
+
 
 class Parser(object):
     def __init__(self):
@@ -116,3 +125,30 @@ class Parser(object):
             postfix.append(stack.pop())
         
         return postfix
+        
+    def postfix_to_expr_tree(self, postfix):
+        """
+        Converts a postfix expression to a binary expression tree
+        """
+
+        if not postfix:
+            return None
+
+        stack = []
+        for op in postfix:
+            if isinstance(op, Operand):
+                stack.append(TreeNode(op))
+            else:
+                if len(stack) >= 2:
+                    right = stack.pop()
+                    left = stack.pop()
+                    node = TreeNode(op, left=left, right=right)
+                    stack.append(node)
+                else:
+                    # TODO: be more specific
+                    raise SyntaxError("Invalid expression")
+
+        if len(stack) == 1:
+            return stack[-1]
+        else:
+            raise SyntaxError("Invalid expression")
