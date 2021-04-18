@@ -14,7 +14,7 @@ class Controller(object):
         self.widget.on_plot.connect(self.on_plot)
     
     @Slot()
-    def plot_button_clicked(self):
+    def on_plot(self):
         func_string = self.widget.get_input_string()
 
         try:
