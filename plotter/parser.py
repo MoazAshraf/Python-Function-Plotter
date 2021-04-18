@@ -79,12 +79,12 @@ class Parser(object):
         stack = []
         for op in postfix:
             if isinstance(op, Operand):
-                stack.append(TreeNode(op))
+                stack.append(ExprTNode(op))
             else:
                 if len(stack) >= 2:
                     right = stack.pop()
                     left = stack.pop()
-                    node = TreeNode(op, left=left, right=right)
+                    node = ExprTNode(op, left=left, right=right)
                     stack.append(node)
                 else:
                     # TODO: be more specific

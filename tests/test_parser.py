@@ -177,9 +177,9 @@ class TestPostfixToExprTree(object):
         parser = Parser()
 
         postfix = [Operand(value=4.0), Operand(value=2.0), AddOperator()]
-        expected = TreeNode(AddOperator(),
-                        left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(Operand(value=2.0)))
+        expected = ExprTNode(AddOperator(),
+                        left=ExprTNode(Operand(value=4.0)),
+                        right=ExprTNode(Operand(value=2.0)))
         output = parser.postfix_to_expr_tree(postfix)
         assert output == expected
     
@@ -196,11 +196,11 @@ class TestPostfixToExprTree(object):
 
         postfix = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
                    Operand(value=1.0), AddOperator()]
-        expected = TreeNode(AddOperator(),
-                        left=TreeNode(MulOperator(),
-                            left=TreeNode(Operand(value=4.0)),
-                            right=TreeNode(Operand(value=2.0))),
-                        right=TreeNode(Operand(value=1.0)))
+        expected = ExprTNode(AddOperator(),
+                        left=ExprTNode(MulOperator(),
+                            left=ExprTNode(Operand(value=4.0)),
+                            right=ExprTNode(Operand(value=2.0))),
+                        right=ExprTNode(Operand(value=1.0)))
         output = parser.postfix_to_expr_tree(postfix)
 
         assert output == expected
@@ -218,11 +218,11 @@ class TestPostfixToExprTree(object):
 
         postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
                    MulOperator(), AddOperator()]
-        expected = TreeNode(AddOperator(),
-                        left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(MulOperator(),
-                            left=TreeNode(Operand(value=2.0)),
-                            right=TreeNode(Operand(value=1.0))))
+        expected = ExprTNode(AddOperator(),
+                        left=ExprTNode(Operand(value=4.0)),
+                        right=ExprTNode(MulOperator(),
+                            left=ExprTNode(Operand(value=2.0)),
+                            right=ExprTNode(Operand(value=1.0))))
         output = parser.postfix_to_expr_tree(postfix)
 
         assert output == expected
@@ -280,29 +280,29 @@ class TestParse(object):
     def test_4_plus_2(self):
         parser = Parser()
         string = "4 + 2"
-        expected = TreeNode(AddOperator(),
-                        left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(Operand(value=2.0)))
+        expected = ExprTNode(AddOperator(),
+                        left=ExprTNode(Operand(value=4.0)),
+                        right=ExprTNode(Operand(value=2.0)))
         
         assert parser.parse(string) == expected
     
     def test_4_plus_x(self):
         parser = Parser()
         string = "4 + x"
-        expected = TreeNode(AddOperator(),
-                        left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(Operand(is_x=True)))
+        expected = ExprTNode(AddOperator(),
+                        left=ExprTNode(Operand(value=4.0)),
+                        right=ExprTNode(Operand(is_x=True)))
         
         assert parser.parse(string) == expected
     
     def test_4_plus_2_times_1(self):
         parser = Parser()
         string = "4 + 2 * 1"
-        expected = TreeNode(AddOperator(),
-                        left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(MulOperator(),
-                            left=TreeNode(Operand(value=2.0)),
-                            right=TreeNode(Operand(value=1.0))))
+        expected = ExprTNode(AddOperator(),
+                        left=ExprTNode(Operand(value=4.0)),
+                        right=ExprTNode(MulOperator(),
+                            left=ExprTNode(Operand(value=2.0)),
+                            right=ExprTNode(Operand(value=1.0))))
         
         assert parser.parse(string) == expected
     
@@ -323,24 +323,24 @@ class TestParse(object):
     def test_negative_2(self):
         parser = Parser()
         string = "-2"
-        expected = TreeNode(Operand(value=-2.0))
+        expected = ExprTNode(Operand(value=-2.0))
 
         assert parser.parse(string) == expected
     
     def test_4_plus_negative_2(self):
         parser = Parser()
         string = "4+-2"
-        expected = TreeNode(AddOperator(),
-                    left=TreeNode(Operand(value=4.0)),
-                    right=TreeNode(Operand(value=-2.0)))
+        expected = ExprTNode(AddOperator(),
+                    left=ExprTNode(Operand(value=4.0)),
+                    right=ExprTNode(Operand(value=-2.0)))
 
         assert parser.parse(string) == expected
     
     def test_4_plus_plus_plus_minus_minus_2(self):
         parser = Parser()
         string = "4+++--2"
-        expected = TreeNode(AddOperator(),
-                    left=TreeNode(Operand(value=4.0)),
-                    right=TreeNode(Operand(value=2.0)))
+        expected = ExprTNode(AddOperator(),
+                    left=ExprTNode(Operand(value=4.0)),
+                    right=ExprTNode(Operand(value=2.0)))
 
         assert parser.parse(string) == expected
