@@ -17,7 +17,7 @@ class MainWidget(QWidget):
         self.plot_widget = QLabel("Plot Widget Placeholder")
         self.func_input = QTextEdit("Function Here")
         self.plot_button = QPushButton("Plot")
-        self.message_label = QLabel("Message")
+        self.message_label = QLabel()
 
         ## define the layout
         # nested layout for function text input and plot button
@@ -44,3 +44,23 @@ class MainWidget(QWidget):
         self.plot_widget.setAlignment(QtCore.Qt.AlignCenter)
         # message label
         self.message_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.message_label.setVisible(False)
+        self.message_label.setStyleSheet("color: red")
+
+        ## give signals names to be used by controller
+        self.plot_clicked = self.plot_button.clicked
+    
+    def get_input_string(self):
+        """
+        Returns the function input string
+        """
+
+        return self.func_input.toPlainText()
+
+    def update_message(self, string):
+        """
+        Updates the message label
+        """
+
+        self.message_label.setText(string)
+        self.message_label.setVisible(True if string else False)

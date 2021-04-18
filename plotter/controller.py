@@ -11,8 +11,14 @@ class Controller(object):
         self.widget = widget
 
         ## connect widget signals to controller slots
-        self.widget.plot_button.clicked.connect(self.plot_button_clicked)
+        self.widget.plot_clicked.connect(self.plot_button_clicked)
     
     @Slot()
     def plot_button_clicked(self):
-        print("Plot Button Clicked!")
+        func_string = self.widget.get_input_string()
+
+        try:
+            self.parser.parse(func_string)
+            self.widget.update_message("")
+        except (ValueError, SyntaxError) as e:
+            self.widget.update_message(str(e))
