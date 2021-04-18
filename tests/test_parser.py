@@ -1,6 +1,6 @@
 import pytest
-from plotter.parser import Parser
-from plotter.expression import *
+from plotter.services.parser import Parser
+from plotter.models.expression import *
 
 
 class TestParseToExprList(object):

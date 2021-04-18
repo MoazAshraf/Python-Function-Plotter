@@ -2,6 +2,7 @@
 ## input events from the View (QWidget). The controller uses a Model (parser)
 ## to update the view.
 
+import numpy as np
 from PySide2.QtCore import Slot
 
 
@@ -10,15 +11,25 @@ class Controller(object):
         self.parser = parser
         self.widget = widget
 
-        ## connect widget signals to controller slots
+        # connect view signals to controller slots
         self.widget.on_plot.connect(self.on_plot)
     
-    @Slot()
-    def on_plot(self):
+    @Slot(np.ndarray)
+    def on_plot(self, x):
+        """
+        This slot is connected to the view's on_plot signal.
+        x is a numpy array.
+        """
+
         func_string = self.widget.get_input_string()
 
+        # parse the expression, evaluate at the given x values and give the
+        # result to the view
         try:
-            self.parser.parse(func_string)
+            func_expr = self.parser.parse(func_string)
+            if func_expr is not None:
+                y = func_expr.evaluate(x)
+                self.widget.plot(x, y)
             self.widget.update_message("")
         except (ValueError, SyntaxError) as e:
             self.widget.update_message(str(e))

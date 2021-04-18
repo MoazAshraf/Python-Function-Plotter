@@ -1,6 +1,9 @@
 ## The expression module contains classes needed to form expression trees that
 ## can be evaluated
 
+import numpy as np
+
+
 class Operator(object):
     """
     Base operator class.
@@ -73,7 +76,7 @@ class Operand(object):
     An operand can either by x or a float value.
     """
 
-    def __init__(self, is_x=False, value=None):
+    def __init__(self, is_x: bool=False, value: float=None):
         self.is_x = is_x
         if not is_x:
             self.value = value
@@ -99,11 +102,14 @@ class Operand(object):
         """
         Evaluate the operand and return the result as a float.
         x is the value to use if the operand is x. Defaults to 0.
+        x can be a numpy array.
         """
 
         if self.is_x:
             return x
         else:
+            if isinstance(x, np.ndarray):
+                return np.full_like(x, self.value)
             return self.value
 
 
@@ -136,6 +142,7 @@ class ExprTNode(object):
         """
         Evaluate the expression tree and return the result.
         x is the value to set every occurence of 'x' to. Defaults to 0.
+        x can be a numpy array.
         """
 
         op = self.key

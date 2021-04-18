@@ -1,5 +1,5 @@
 import pytest
-from plotter.expression import *
+from plotter.models.expression import *
 
 
 class TestOperandEquality(object):

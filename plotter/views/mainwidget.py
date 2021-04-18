@@ -1,20 +1,27 @@
 ## The main widget contains the whole user interface and is the widget directly
 ## rendered by the application. Represents the View in the MVC pattern.
 
+import numpy as np
 from PySide2 import QtCore
+from PySide2.QtCore import Slot, Signal
 from PySide2.QtWidgets import (
     QWidget, QLabel, QTextEdit, QPushButton,
     QVBoxLayout, QHBoxLayout,
     QSizePolicy
     )
+from ..models.expression import ExprTNode
+from .mplwidget import MplCanvasWidget
 
 
 class MainWidget(QWidget):
+    ## define signals
+    on_plot = Signal(np.ndarray)
+
     def __init__(self):
         super().__init__()
 
         ## create the widgets
-        self.plot_widget = QLabel("Plot Widget Placeholder")
+        self.plot_widget = MplCanvasWidget()
         self.func_label = QLabel("f(x) = ")
         self.func_input = QTextEdit()
         self.plot_button = QPushButton("Plot")
@@ -43,15 +50,19 @@ class MainWidget(QWidget):
         self.func_input.setPlaceholderText("e.g. x^2")
         # plot widget
         self.plot_widget.setSizePolicy(QSizePolicy.Expanding,
-            QSizePolicy.Expanding)
-        self.plot_widget.setAlignment(QtCore.Qt.AlignCenter)
+                                       QSizePolicy.Expanding)
         # message label
         self.message_label.setAlignment(QtCore.Qt.AlignCenter)
         self.message_label.setVisible(False)
         self.message_label.setStyleSheet("color: red")
 
-        ## give signals names to be used by controller
-        self.on_plot = self.plot_button.clicked
+        ## connect signals to slots
+        self.plot_button.clicked.connect(self._on_plot_button_clicked)
+    
+    @Slot()
+    def _on_plot_button_clicked(self):
+        x = np.linspace(0, 1, 100)
+        self.on_plot.emit(x)
     
     def get_input_string(self):
         """
@@ -67,3 +78,10 @@ class MainWidget(QWidget):
 
         self.message_label.setText(string)
         self.message_label.setVisible(True if string else False)
+    
+    def plot(self, x: np.ndarray, y: np.ndarray):
+        """
+        Plot the provided x and y values
+        """
+
+        self.plot_widget.plot(x, y)

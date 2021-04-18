@@ -1,8 +1,8 @@
 ## The parser validates and parses user input (functions of x) into an
 ## executable tree of operations. It represents a Model in the MVC pattern.
 
-from .util import split_str
-from .expression import *
+from ..util import split_str
+from ..models.expression import *
 
 
 class Parser(object):
