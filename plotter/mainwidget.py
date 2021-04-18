@@ -15,7 +15,8 @@ class MainWidget(QWidget):
 
         ## create the widgets
         self.plot_widget = QLabel("Plot Widget Placeholder")
-        self.func_input = QTextEdit("Function Here")
+        self.func_label = QLabel("f(x) = ")
+        self.func_input = QTextEdit()
         self.plot_button = QPushButton("Plot")
         self.message_label = QLabel()
 
@@ -23,6 +24,7 @@ class MainWidget(QWidget):
         # nested layout for function text input and plot button
         self.input_widget = QWidget()
         self.input_layout = QHBoxLayout()
+        self.input_layout.addWidget(self.func_label)
         self.input_layout.addWidget(self.func_input)
         self.input_layout.addWidget(self.plot_button)
         self.input_widget.setLayout(self.input_layout)
@@ -37,7 +39,8 @@ class MainWidget(QWidget):
         # function text input
         self.func_input.setMaximumHeight(28)
         self.func_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.func_input.setAlignment(QtCore.Qt.AlignCenter)
+        self.func_input.setAlignment(QtCore.Qt.AlignLeft)
+        self.func_input.setPlaceholderText("e.g. x^2")
         # plot widget
         self.plot_widget.setSizePolicy(QSizePolicy.Expanding,
             QSizePolicy.Expanding)
