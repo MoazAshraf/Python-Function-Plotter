@@ -12,6 +12,16 @@ class Operator(Enum):
     ADD = 4
     SUB = 5
 
+
+# Operator precedences
+PRECEDENCE = {
+    Operator.POW: 3,
+    Operator.MUL: 2,
+    Operator.DIV: 2,
+    Operator.ADD: 1,
+    Operator.SUB: 1
+}
+
 # String to operator
 STR_TO_OPERATOR = {
     '^': Operator.POW,
@@ -31,12 +41,21 @@ class Operand(object):
             self.value = value
     
     def __eq__(self, other):
+        if not isinstance(other, Operand):
+            return False
+
         if self.is_x and other.is_x:
             return True
         elif self.is_x != other.is_x:
             return False
         else:
             return self.value == other.value
+    
+    def __str__(self):
+        if is_x:
+            return 'x'
+        else:
+            return str(self.value)
 
 
 class Parser(object):
@@ -70,3 +89,24 @@ class Parser(object):
                             " ^, *, /, +, - or x")
 
         return expr
+    
+    def infix_to_postfix(self, infix):
+        """
+        Converts an infix expression to postfix expression
+        """
+
+        stack = []
+        postfix = []
+        for op in infix:
+            if isinstance(op, Operand):
+                postfix.append(op)
+            else:
+                while stack and PRECEDENCE[op] <= PRECEDENCE[stack[-1]]:
+                    postfix.append(stack.pop())
+                stack.append(op)
+
+        # push remaining operands
+        while stack:
+            postfix.append(stack.pop())
+        
+        return postfix
