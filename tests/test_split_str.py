@@ -16,3 +16,6 @@ def test_split_str_intmath():
     expected = ["-", "x", "*", "4.0", "^", "2.33", "-", "4912", "/", "6.559",
                 "+", "9"]
     assert split_str(string, sep=['+', '-', '*', '/', '^']) == expected
+
+# TODO: test empty strings, strings with no separators, strings with white space
+# between operands
