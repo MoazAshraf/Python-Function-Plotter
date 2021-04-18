@@ -1,19 +1,6 @@
 import pytest
-from plotter.parser import Parser, Operand, Operator, TreeNode
-
-
-class TestOperandEquality(object):
-    def test_float(self):
-        assert Operand(value=4.0) == Operand(value=4.0)
-
-    def test_x_and_float(self):
-        assert Operand(is_x=True) != Operand(value=4.0)
-
-    def test_float_and_x(self):
-        assert Operand(value=4.0) != Operand(is_x=True)
-
-    def test_x_and_x(self):
-        assert Operand(is_x=True) == Operand(is_x=True)
+from plotter.parser import Parser
+from plotter.expression import *
 
 
 class TestParseToExprList(object):
@@ -26,23 +13,23 @@ class TestParseToExprList(object):
     def test_simple_const(self):
         parser = Parser()
         string = "4 + 2"
-        expected = [Operand(value=4.0), Operator.ADD, Operand(value=2.0)]
+        expected = [Operand(value=4.0), AddOperator(), Operand(value=2.0)]
         assert parser.parse_to_expr_list(string) == expected
 
     def test_complex_const(self):
         parser = Parser()
         string = "4 + 2 * -8.2^42 / 9"
-        expected = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
-                    Operator.MUL, Operator.SUB, Operand(value=8.2), Operator.POW,
-                    Operand(value=42), Operator.DIV, Operand(value=9)]
+        expected = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
+                    MulOperator(), SubOperator(), Operand(value=8.2), PowOperator(),
+                    Operand(value=42), DivOperator(), Operand(value=9)]
         assert parser.parse_to_expr_list(string) == expected
 
     def test_complex_x(self):
         parser = Parser()
         string = "x + 2 * -x^42 / 9"
-        expected = [Operand(is_x=True), Operator.ADD, Operand(value=2.0),
-                    Operator.MUL, Operator.SUB, Operand(is_x=True), Operator.POW,
-                    Operand(value=42), Operator.DIV, Operand(value=9)]
+        expected = [Operand(is_x=True), AddOperator(), Operand(value=2.0),
+                    MulOperator(), SubOperator(), Operand(is_x=True), PowOperator(),
+                    Operand(value=42), DivOperator(), Operand(value=9)]
         assert parser.parse_to_expr_list(string) == expected
 
     def test_unknown(self):
@@ -65,8 +52,8 @@ class TestInfixToPostfix(object):
         expected = 4 2 +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0)]
-        expected = [Operand(value=4.0), Operand(value=2.0), Operator.ADD]
+        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0)]
+        expected = [Operand(value=4.0), Operand(value=2.0), AddOperator()]
         assert parser.infix_to_postfix(infix) == expected
 
     def test_add_sub(self):
@@ -75,11 +62,11 @@ class TestInfixToPostfix(object):
         expected = 4 2 + 1 -
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
-                 Operator.SUB, Operand(value=1.0)]
+        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
+                 SubOperator(), Operand(value=1.0)]
 
-        expected = [Operand(value=4.0), Operand(value=2.0), Operator.ADD,
-                    Operand(value=1.0), Operator.SUB]
+        expected = [Operand(value=4.0), Operand(value=2.0), AddOperator(),
+                    Operand(value=1.0), SubOperator()]
         assert parser.infix_to_postfix(infix) == expected
 
     def test_add_mul(self):
@@ -88,11 +75,11 @@ class TestInfixToPostfix(object):
         expected = 4 2 1 * +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
-                 Operator.MUL, Operand(value=1.0)]
+        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
+                 MulOperator(), Operand(value=1.0)]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
-                    Operator.MUL, Operator.ADD]
+                    MulOperator(), AddOperator()]
         assert parser.infix_to_postfix(infix) == expected
 
     def test_mul_add(self):
@@ -101,11 +88,11 @@ class TestInfixToPostfix(object):
         expected = 4 2 * 1 +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.MUL, Operand(value=2.0),
-                 Operator.ADD, Operand(value=1.0)]
+        infix = [Operand(value=4.0), MulOperator(), Operand(value=2.0),
+                 AddOperator(), Operand(value=1.0)]
 
-        expected = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
-                    Operand(value=1.0), Operator.ADD]
+        expected = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
+                    Operand(value=1.0), AddOperator()]
         assert parser.infix_to_postfix(infix) == expected
 
     def test_complex(self):
@@ -114,21 +101,21 @@ class TestInfixToPostfix(object):
         expected = 4 x * 1 + 8 9 ^ 23 / 9 / 4 * - x 3 ^ -
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.MUL, Operand(is_x=True),
-                 Operator.ADD, Operand(value=1.0), Operator.SUB,
-                 Operand(value=8.0), Operator.POW, Operand(value=9.0),
-                 Operator.DIV, Operand(value=23.0), Operator.DIV,
-                 Operand(value=9.0), Operator.MUL, Operand(value=4.0),
-                 Operator.SUB, Operand(is_x=True), Operator.POW,
+        infix = [Operand(value=4.0), MulOperator(), Operand(is_x=True),
+                 AddOperator(), Operand(value=1.0), SubOperator(),
+                 Operand(value=8.0), PowOperator(), Operand(value=9.0),
+                 DivOperator(), Operand(value=23.0), DivOperator(),
+                 Operand(value=9.0), MulOperator(), Operand(value=4.0),
+                 SubOperator(), Operand(is_x=True), PowOperator(),
                  Operand(value=3.0)]
 
-        expected = [Operand(value=4.0), Operand(is_x=True), Operator.MUL,
-                    Operand(value=1.0), Operator.ADD, Operand(value=8.0),
-                    Operand(value=9.0), Operator.POW, Operand(value=23.0),
-                    Operator.DIV, Operand(value=9.0), Operator.DIV,
-                    Operand(value=4.0), Operator.MUL, Operator.SUB,
-                    Operand(is_x=True), Operand(value=3.0), Operator.POW,
-                    Operator.SUB]
+        expected = [Operand(value=4.0), Operand(is_x=True), MulOperator(),
+                    Operand(value=1.0), AddOperator(), Operand(value=8.0),
+                    Operand(value=9.0), PowOperator(), Operand(value=23.0),
+                    DivOperator(), Operand(value=9.0), DivOperator(),
+                    Operand(value=4.0), MulOperator(), SubOperator(),
+                    Operand(is_x=True), Operand(value=3.0), PowOperator(),
+                    SubOperator()]
 
         assert parser.infix_to_postfix(infix) == expected
 
@@ -138,11 +125,11 @@ class TestInfixToPostfix(object):
         expected = 4 2 * +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.MUL, Operand(value=2.0),
-                 Operator.ADD]
+        infix = [Operand(value=4.0), MulOperator(), Operand(value=2.0),
+                 AddOperator()]
 
-        expected = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
-                    Operator.ADD]
+        expected = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
+                    AddOperator()]
         assert parser.infix_to_postfix(infix) == expected
 
     def test_invalid_2(self):
@@ -151,11 +138,11 @@ class TestInfixToPostfix(object):
         expected = 4 2 * +
         """
         parser = Parser()
-        infix = [Operator.ADD, Operand(value=4.0), Operator.MUL,
+        infix = [AddOperator(), Operand(value=4.0), MulOperator(),
                  Operand(value=2.0)]
 
-        expected = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
-                    Operator.ADD]
+        expected = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
+                    AddOperator()]
         assert parser.infix_to_postfix(infix) == expected
     
     def test_invalid_3(self):
@@ -164,58 +151,12 @@ class TestInfixToPostfix(object):
         expected = 4 2 1 +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), Operator.ADD, Operand(value=2.0),
+        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
                  Operand(value=1.0)]
 
         expected = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
-                    Operator.ADD]
+                    AddOperator()]
         assert parser.infix_to_postfix(infix) == expected
-
-
-class TestTreeEquality(object):
-    def test_equal(self):
-        tree_a = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        tree_b = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        assert tree_a == tree_b
-    
-    def test_keys_different(self):
-        tree_a = TreeNode(Operator.SUB,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        tree_b = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        assert tree_a != tree_b
-    
-    def test_right_different(self):
-        tree_a = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=3.0)))
-        
-        tree_b = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        assert tree_a != tree_b
-    
-    def test_left_different(self):
-        tree_a = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=1.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        tree_b = TreeNode(Operator.ADD,
-                 left=TreeNode(Operand(value=4.0)),
-                 right=TreeNode(Operand(value=2.0)))
-        
-        assert tree_a != tree_b
 
 
 class TestPostfixToExprTree(object):
@@ -235,8 +176,8 @@ class TestPostfixToExprTree(object):
 
         parser = Parser()
 
-        postfix = [Operand(value=4.0), Operand(value=2.0), Operator.ADD]
-        expected = TreeNode(Operator.ADD,
+        postfix = [Operand(value=4.0), Operand(value=2.0), AddOperator()]
+        expected = TreeNode(AddOperator(),
                         left=TreeNode(Operand(value=4.0)),
                         right=TreeNode(Operand(value=2.0)))
         output = parser.postfix_to_expr_tree(postfix)
@@ -253,10 +194,10 @@ class TestPostfixToExprTree(object):
         
         parser = Parser()
 
-        postfix = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
-                   Operand(value=1.0), Operator.ADD]
-        expected = TreeNode(Operator.ADD,
-                        left=TreeNode(Operator.MUL,
+        postfix = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
+                   Operand(value=1.0), AddOperator()]
+        expected = TreeNode(AddOperator(),
+                        left=TreeNode(MulOperator(),
                             left=TreeNode(Operand(value=4.0)),
                             right=TreeNode(Operand(value=2.0))),
                         right=TreeNode(Operand(value=1.0)))
@@ -276,10 +217,10 @@ class TestPostfixToExprTree(object):
         parser = Parser()
 
         postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
-                   Operator.MUL, Operator.ADD]
-        expected = TreeNode(Operator.ADD,
+                   MulOperator(), AddOperator()]
+        expected = TreeNode(AddOperator(),
                         left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(Operator.MUL,
+                        right=TreeNode(MulOperator(),
                             left=TreeNode(Operand(value=2.0)),
                             right=TreeNode(Operand(value=1.0))))
         output = parser.postfix_to_expr_tree(postfix)
@@ -294,8 +235,8 @@ class TestPostfixToExprTree(object):
         
         parser = Parser()
 
-        postfix = [Operand(value=4.0), Operand(value=2.0), Operator.MUL,
-                   Operator.ADD]
+        postfix = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
+                   AddOperator()]
         
         with pytest.raises(SyntaxError):
             parser.postfix_to_expr_tree(postfix)
@@ -309,7 +250,7 @@ class TestPostfixToExprTree(object):
         parser = Parser()
 
         postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
-                   Operator.ADD]
+                   AddOperator()]
         
         with pytest.raises(SyntaxError):
             parser.postfix_to_expr_tree(postfix)
@@ -322,7 +263,7 @@ class TestPostfixToExprTree(object):
         
         parser = Parser()
 
-        postfix = [Operator.ADD, Operand(value=4.0), Operand(value=2.0)]
+        postfix = [AddOperator(), Operand(value=4.0), Operand(value=2.0)]
         
         with pytest.raises(SyntaxError):
             parser.postfix_to_expr_tree(postfix)
@@ -339,7 +280,7 @@ class TestParse(object):
     def test_4_plus_2(self):
         parser = Parser()
         string = "4 + 2"
-        expected = TreeNode(Operator.ADD,
+        expected = TreeNode(AddOperator(),
                         left=TreeNode(Operand(value=4.0)),
                         right=TreeNode(Operand(value=2.0)))
         
@@ -348,7 +289,7 @@ class TestParse(object):
     def test_4_plus_x(self):
         parser = Parser()
         string = "4 + x"
-        expected = TreeNode(Operator.ADD,
+        expected = TreeNode(AddOperator(),
                         left=TreeNode(Operand(value=4.0)),
                         right=TreeNode(Operand(is_x=True)))
         
@@ -357,9 +298,9 @@ class TestParse(object):
     def test_4_plus_2_times_1(self):
         parser = Parser()
         string = "4 + 2 * 1"
-        expected = TreeNode(Operator.ADD,
+        expected = TreeNode(AddOperator(),
                         left=TreeNode(Operand(value=4.0)),
-                        right=TreeNode(Operator.MUL,
+                        right=TreeNode(MulOperator(),
                             left=TreeNode(Operand(value=2.0)),
                             right=TreeNode(Operand(value=1.0))))
         
@@ -389,7 +330,7 @@ class TestParse(object):
     def test_4_plus_negative_2(self):
         parser = Parser()
         string = "4+-2"
-        expected = TreeNode(Operator.ADD,
+        expected = TreeNode(AddOperator(),
                     left=TreeNode(Operand(value=4.0)),
                     right=TreeNode(Operand(value=-2.0)))
 
@@ -398,7 +339,7 @@ class TestParse(object):
     def test_4_plus_plus_plus_minus_minus_2(self):
         parser = Parser()
         string = "4+++--2"
-        expected = TreeNode(Operator.ADD,
+        expected = TreeNode(AddOperator(),
                     left=TreeNode(Operand(value=4.0)),
                     right=TreeNode(Operand(value=2.0)))
 
