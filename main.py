@@ -14,7 +14,9 @@ if __name__ == "__main__":
 
     # create and show the main widget (view)
     widget = MainWidget()
-    widget.resize(640, 480)
+    size = (640, 640)
+    widget.setMinimumSize(*size)
+    widget.resize(*size)
     widget.setWindowTitle("Function Plotter")
     widget.show()
 

@@ -14,14 +14,13 @@ class Controller(object):
         # connect view signals to controller slots
         self.widget.on_plot.connect(self.on_plot)
     
-    @Slot(np.ndarray)
-    def on_plot(self, x):
+    @Slot(str, np.ndarray)
+    def on_plot(self, func_string, x):
         """
         This slot is connected to the view's on_plot signal.
+        func_string is the function input text
         x is a numpy array.
         """
-
-        func_string = self.widget.get_input_string()
 
         # parse the expression, evaluate at the given x values and give the
         # result to the view

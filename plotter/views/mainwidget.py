@@ -39,6 +39,50 @@ class CustomHBoxWidget(QWidget):
         return button
 
 
+class AxisRangeWidget(CustomHBoxWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.x_min_label = self._add_label("X Min:")
+        self.x_min_input = self._add_text_input()
+
+        self.x_max_label = self._add_label("X Max:")
+        self.x_max_input = self._add_text_input("1")
+
+        self.y_min_label = self._add_label("Y Min:")
+        self.y_min_input = self._add_text_input()
+
+        self.y_max_label = self._add_label("Y Max:")
+        self.y_max_input = self._add_text_input("1")
+    
+    def get_x_values(self):
+        """
+        Returns the x range values in a tuple as (x_min, x_max)
+        """
+        x_min = float(self.x_min_input.toPlainText())
+        x_max = float(self.x_max_input.toPlainText())
+
+        return x_min, x_max
+    
+    def get_y_values(self):
+        """
+        Returns the x range values in a tuple as (x_min, x_max)
+        """
+        y_min = float(self.y_min_input.toPlainText())
+        y_max = float(self.y_max_input.toPlainText())
+
+        return y_min, y_max
+
+    def get_values(self):
+        """
+        Returns the range values in a tuple as (x_min, x_max, y_min, y_max)
+        """
+        x_min, x_max = self.get_x_values()
+        y_min, y_max = self.get_y_values()
+
+        return x_min, x_max, y_min, y_max
+
+
 class FunctionWidget(CustomHBoxWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,7 +97,7 @@ class FunctionWidget(CustomHBoxWidget):
 
 class MainWidget(QWidget):
     # define signals
-    on_plot = Signal(np.ndarray)
+    on_plot = Signal(str, np.ndarray)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,6 +105,12 @@ class MainWidget(QWidget):
         # create the main layout (vertical)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
+
+        # axis range widget
+        self.axis_range_widget = AxisRangeWidget()
+        self.axis_range_widget.setMaximumWidth(640)
+        self.layout.addWidget(self.axis_range_widget,
+            alignment=QtCore.Qt.AlignHCenter)
 
         # matplotlib canvas widget
         self.plot_widget = MplCanvasWidget()
@@ -86,8 +136,9 @@ class MainWidget(QWidget):
     
     @Slot()
     def _on_plot_button_clicked(self):
-        x = np.linspace(0, 1, 100)
-        self.on_plot.emit(x)
+        x_min, x_max = self.axis_range_widget.get_x_values()
+        x = np.linspace(x_min, x_max, 1000)
+        self.on_plot.emit(self.get_input_string(), x)
     
     def get_input_string(self):
         """
@@ -109,4 +160,4 @@ class MainWidget(QWidget):
         Plot the provided x and y values
         """
 
-        self.plot_widget.plot(x, y)
+        self.plot_widget.plot(x, y, *self.axis_range_widget.get_values())
