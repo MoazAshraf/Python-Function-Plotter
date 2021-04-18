@@ -20,10 +20,9 @@ class MplCanvasWidget(FigureCanvas):
 
         FigureCanvas.updateGeometry(self)
     
-    def plot(self, x, y, x_min, x_max, y_min, y_max):
+    def plot(self, x, y, x_min, x_max):
         self.axes.cla()
         self.axes.set_xlim(x_min, x_max)
-        self.axes.set_ylim(y_min, y_max)
         self.set_labels()
         self.axes.plot(x, y)
         self.draw()

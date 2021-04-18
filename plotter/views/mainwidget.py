@@ -48,12 +48,6 @@ class AxisRangeWidget(CustomHBoxWidget):
 
         self.x_max_label = self._add_label("X Max:")
         self.x_max_input = self._add_text_input("1")
-
-        self.y_min_label = self._add_label("Y Min:")
-        self.y_min_input = self._add_text_input()
-
-        self.y_max_label = self._add_label("Y Max:")
-        self.y_max_input = self._add_text_input("1")
     
     def get_x_values(self):
         """
@@ -63,24 +57,6 @@ class AxisRangeWidget(CustomHBoxWidget):
         x_max = float(self.x_max_input.toPlainText())
 
         return x_min, x_max
-    
-    def get_y_values(self):
-        """
-        Returns the x range values in a tuple as (x_min, x_max)
-        """
-        y_min = float(self.y_min_input.toPlainText())
-        y_max = float(self.y_max_input.toPlainText())
-
-        return y_min, y_max
-
-    def get_values(self):
-        """
-        Returns the range values in a tuple as (x_min, x_max, y_min, y_max)
-        """
-        x_min, x_max = self.get_x_values()
-        y_min, y_max = self.get_y_values()
-
-        return x_min, x_max, y_min, y_max
 
 
 class FunctionWidget(CustomHBoxWidget):
@@ -108,7 +84,7 @@ class MainWidget(QWidget):
 
         # axis range widget
         self.axis_range_widget = AxisRangeWidget()
-        self.axis_range_widget.setMaximumWidth(640)
+        self.axis_range_widget.setMaximumWidth(320)
         self.layout.addWidget(self.axis_range_widget,
             alignment=QtCore.Qt.AlignHCenter)
 
@@ -160,4 +136,4 @@ class MainWidget(QWidget):
         Plot the provided x and y values
         """
 
-        self.plot_widget.plot(x, y, *self.axis_range_widget.get_values())
+        self.plot_widget.plot(x, y, *self.axis_range_widget.get_x_values())
