@@ -11,7 +11,7 @@ class Controller(object):
         self.widget = widget
 
         ## connect widget signals to controller slots
-        self.widget.plot_button_clicked.connect(self.plot_button_clicked)
+        self.widget.on_plot.connect(self.on_plot)
     
     @Slot()
     def plot_button_clicked(self):

@@ -51,7 +51,7 @@ class MainWidget(QWidget):
         self.message_label.setStyleSheet("color: red")
 
         ## give signals names to be used by controller
-        self.plot_button_clicked = self.plot_button.clicked
+        self.on_plot = self.plot_button.clicked
     
     def get_input_string(self):
         """
