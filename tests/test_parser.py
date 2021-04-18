@@ -17,6 +17,12 @@ class TestOperandEquality(object):
 
 
 class TestParseToExprList(object):
+    def test_empty(self):
+        parser = Parser()
+        string = ""
+        expected = []
+        assert parser.parse_to_expr_list(string) == expected
+
     def test_simple_const(self):
         parser = Parser()
         string = "4 + 2"
@@ -47,6 +53,12 @@ class TestParseToExprList(object):
     
 
 class TestInfixToPostfix(object):
+    def test_empty(self):
+        parser = Parser()
+        infix = []
+        expected = []
+        assert parser.infix_to_postfix(infix) == expected
+
     def test_add(self):
         """
         infix = 4 + 2
@@ -207,6 +219,12 @@ class TestTreeEquality(object):
 
 
 class TestPostfixToExprTree(object):
+    def test_empty(self):
+        parser = Parser()
+        postfix = []
+        expected = None
+        assert parser.postfix_to_expr_tree(postfix) == expected
+
     def test_add(self):
         """
         postfix = 4 2 +
@@ -308,3 +326,80 @@ class TestPostfixToExprTree(object):
         
         with pytest.raises(SyntaxError):
             parser.postfix_to_expr_tree(postfix)
+
+
+class TestParse(object):
+    def test_empty(self):
+        parser = Parser()
+        string = ""
+        expected = None
+
+        assert parser.parse(string) == expected
+
+    def test_4_plus_2(self):
+        parser = Parser()
+        string = "4 + 2"
+        expected = TreeNode(Operator.ADD,
+                        left=TreeNode(Operand(value=4.0)),
+                        right=TreeNode(Operand(value=2.0)))
+        
+        assert parser.parse(string) == expected
+    
+    def test_4_plus_x(self):
+        parser = Parser()
+        string = "4 + x"
+        expected = TreeNode(Operator.ADD,
+                        left=TreeNode(Operand(value=4.0)),
+                        right=TreeNode(Operand(is_x=True)))
+        
+        assert parser.parse(string) == expected
+    
+    def test_4_plus_2_times_1(self):
+        parser = Parser()
+        string = "4 + 2 * 1"
+        expected = TreeNode(Operator.ADD,
+                        left=TreeNode(Operand(value=4.0)),
+                        right=TreeNode(Operator.MUL,
+                            left=TreeNode(Operand(value=2.0)),
+                            right=TreeNode(Operand(value=1.0))))
+        
+        assert parser.parse(string) == expected
+    
+    def test_4_plus_syntaxerror(self):
+        parser = Parser()
+        string = "4 +"
+
+        with pytest.raises(SyntaxError):
+            parser.parse(string)
+    
+    def test_y_valueerror(self):
+        parser = Parser()
+        string = "y"
+
+        with pytest.raises(ValueError):
+            parser.parse(string)
+    
+    def test_negative_2(self):
+        parser = Parser()
+        string = "-2"
+        expected = TreeNode(Operand(value=-2.0))
+
+        assert parser.parse(string) == expected
+    
+    def test_4_plus_negative_2(self):
+        parser = Parser()
+        string = "4+-2"
+        expected = TreeNode(Operator.ADD,
+                    left=TreeNode(Operand(value=4.0)),
+                    right=TreeNode(Operand(value=-2.0)))
+
+        assert parser.parse(string) == expected
+    
+    def test_4_plus_plus_plus_minus_minus_2(self):
+        parser = Parser()
+        string = "4+++--2"
+        expected = TreeNode(Operator.ADD,
+                    left=TreeNode(Operand(value=4.0)),
+                    right=TreeNode(Operand(value=2.0)))
+
+        assert parser.parse(string) == expected

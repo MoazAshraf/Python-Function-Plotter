@@ -76,6 +76,17 @@ class TreeNode(object):
 class Parser(object):
     def __init__(self):
         pass
+    
+    def parse(self, string):
+        """
+        Parses an infix expression string to a binary expression tree
+        """
+
+        # putting it all together
+        infix = self.parse_to_expr_list(string)
+        postfix = self.infix_to_postfix(infix)
+        tree = self.postfix_to_expr_tree(postfix)
+        return tree
 
     def parse_to_expr_list(self, string):
         """

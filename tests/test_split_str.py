@@ -2,6 +2,11 @@ from plotter.util import split_str
 
 
 class TestSplitStr(object):
+    def test_empty(self):
+        string = ""
+        expected = []
+        assert split_str(string, sep=[',']) == expected
+
     def test_no_whitespace_comma(self):
         string = "a,b,1,2,abc,123,*&#!,"
         expected = ["a",",","b",",","1",",","2",",","abc",",","123",",","*&#!",","]
@@ -18,5 +23,12 @@ class TestSplitStr(object):
                     "+", "9"]
         assert split_str(string, sep=['+', '-', '*', '/', '^']) == expected
 
-    # TODO: test empty strings, strings with no separators, strings with white space
-    # between operands
+    def test_nosep(self):
+        string = "abcdefg"
+        expected = ["abcdefg"]
+        assert split_str(string, sep=[',']) == expected
+
+    def test_nosep_whitespace(self):
+        string = "40 .12"
+        expected = ["40.12"]
+        assert split_str(string, sep=[',']) == expected
