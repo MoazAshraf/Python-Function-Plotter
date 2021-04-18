@@ -6,58 +6,83 @@ from PySide2 import QtCore
 from PySide2.QtCore import Slot, Signal
 from PySide2.QtWidgets import (
     QWidget, QLabel, QTextEdit, QPushButton,
-    QVBoxLayout, QHBoxLayout,
+    QLayout, QVBoxLayout, QHBoxLayout,
     QSizePolicy
     )
+
 from ..models.expression import ExprTNode
 from .mplwidget import MplCanvasWidget
 
 
-class MainWidget(QWidget):
-    ## define signals
-    on_plot = Signal(np.ndarray)
+class CustomHBoxWidget(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def __init__(self):
-        super().__init__()
-
-        ## create the widgets
-        self.plot_widget = MplCanvasWidget()
-        self.func_label = QLabel("f(x) = ")
-        self.func_input = QTextEdit()
-        self.plot_button = QPushButton("Plot")
-        self.message_label = QLabel()
-
-        ## define the layout
-        # nested layout for function text input and plot button
-        self.input_widget = QWidget()
-        self.input_layout = QHBoxLayout()
-        self.input_layout.addWidget(self.func_label)
-        self.input_layout.addWidget(self.func_input)
-        self.input_layout.addWidget(self.plot_button)
-        self.input_widget.setLayout(self.input_layout)
-        # main layout
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.plot_widget)
-        self.layout.addWidget(self.input_widget)
-        self.layout.addWidget(self.message_label)
+        self.layout = QHBoxLayout()
         self.setLayout(self.layout)
 
-        ## alignment and size policies
-        # function text input
-        self.func_input.setMaximumHeight(28)
-        self.func_input.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.func_input.setAlignment(QtCore.Qt.AlignLeft)
+    def _add_label(self, text=""):
+        self.x_min_label = QLabel(text)
+        self.layout.addWidget(self.x_min_label)
+
+    def _add_text_input(self, text="0"):
+        textedit = QTextEdit(text)
+        textedit.setMaximumHeight(28)
+        textedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        textedit.setAlignment(QtCore.Qt.AlignLeft)
+        self.layout.addWidget(textedit)
+        return textedit
+    
+    def _add_button(self, text):
+        button = QPushButton(text)
+        self.layout.addWidget(button)
+        return button
+
+
+class FunctionWidget(CustomHBoxWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.func_label = self._add_label("f(x) = ")
+
+        self.func_input = self._add_text_input()
         self.func_input.setPlaceholderText("e.g. x^2")
-        # plot widget
+
+        self.plot_button = self._add_button("Plot")
+
+
+class MainWidget(QWidget):
+    # define signals
+    on_plot = Signal(np.ndarray)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # create the main layout (vertical)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        # matplotlib canvas widget
+        self.plot_widget = MplCanvasWidget()
         self.plot_widget.setSizePolicy(QSizePolicy.Expanding,
                                        QSizePolicy.Expanding)
-        # message label
+        self.layout.addWidget(self.plot_widget)
+
+        # function input widget
+        self.func_widget = FunctionWidget()
+        self.func_widget.setMaximumWidth(640)
+        self.layout.addWidget(self.func_widget,
+            alignment=QtCore.Qt.AlignHCenter)
+
+        # error message widget
+        self.message_label = QLabel()
         self.message_label.setAlignment(QtCore.Qt.AlignCenter)
         self.message_label.setVisible(False)
         self.message_label.setStyleSheet("color: red")
+        self.layout.addWidget(self.message_label)
 
-        ## connect signals to slots
-        self.plot_button.clicked.connect(self._on_plot_button_clicked)
+        # connect signals to slots
+        self.func_widget.plot_button.clicked.connect(self._on_plot_button_clicked)
     
     @Slot()
     def _on_plot_button_clicked(self):
@@ -69,7 +94,7 @@ class MainWidget(QWidget):
         Returns the function input string
         """
 
-        return self.func_input.toPlainText()
+        return self.func_widget.func_input.toPlainText()
 
     def update_message(self, string):
         """
