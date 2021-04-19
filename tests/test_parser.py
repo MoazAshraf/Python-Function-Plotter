@@ -306,6 +306,18 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [FloatToken(4), OpToken('+'), VarToken('x')]
+        expected = [Operand(value=4), Operand(is_x=True), AddOperator()]
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
+    
+    def test_4_plus_neg_x(self):
+        """
+        infix = 4 + [-x]
+        expected = 4 [-x] +
+        """
+        parser = Parser()
+        infix = [FloatToken(4), OpToken('+'), VarToken('x', is_neg=True)]
+        expected = [Operand(value=4), Operand(is_neg_x=True), AddOperator()]
         output = parser.infix_to_postfix(infix)
         assert output == expected
     
@@ -315,7 +327,7 @@ class TestInfixToPostfix(object):
         expected: unknown symbol
         """
         parser = Parser()
-        infix = [FloatToken(4), OpToken('+'), VarToken('x')]
+        infix = [FloatToken(4), OpToken('+'), VarToken('y')]
         
         with pytest.raises(ValueError):
             parser.infix_to_postfix(infix)
@@ -377,10 +389,31 @@ class TestInfixToPostfix(object):
         """
         parser = Parser()
         infix = [FloatToken(2.0), OpToken('*'), ParenToken('('),
-                 FloatToken(3.0), OpToken('+'), FloatToken(3.0),
+                 FloatToken(4.0), OpToken('+'), FloatToken(3.0),
                  ParenToken(')')]
         expected = [Operand(value=2.0), Operand(value=4.0), Operand(value=3.0),
                     AddOperator(), MulOperator()]
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
+    
+    def test_2_times_paren_4_plus_3(self):
+        """
+        infix = 2*(4+3^([-10]/9))+(5/100)
+        expected = 2 4 3 [-10] 9 / ^ + * 5 100 / +
+        """
+        parser = Parser()
+        infix = [FloatToken(2.0), OpToken('*'), ParenToken('('),
+                 FloatToken(4.0), OpToken('+'), FloatToken(3.0),
+                 OpToken('^'), ParenToken('('), FloatToken(-10),
+                 OpToken('/'), FloatToken(9), ParenToken(')'),
+                 ParenToken(')'), OpToken('+'), ParenToken('('),
+                 FloatToken(5), OpToken('/'), FloatToken(100),
+                 ParenToken(')')]
+        expected = [Operand(value=2), Operand(value=4), Operand(value=3),
+                    Operand(value=-10), Operand(value=9), DivOperator(),
+                    PowOperator(), AddOperator(), MulOperator(),
+                    Operand(value=5), Operand(value=100), DivOperator(),
+                    AddOperator()]
         output = parser.infix_to_postfix(infix)
         assert output == expected
 

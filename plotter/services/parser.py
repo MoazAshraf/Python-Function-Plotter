@@ -86,7 +86,7 @@ class FloatToken(OperandToken):
         self.value = -self.value
     
     def get_operand(self) -> Operand:
-        return Operand(value=value)
+        return Operand(value=self.value)
 
     def __eq__(self, other):
         if not isinstance(other, FloatToken):
@@ -113,8 +113,9 @@ class VarToken(OperandToken):
         if self.name == 'x':
             operand = Operand(is_x=True)
             operand.is_neg = self.is_neg
+            return operand
         else:
-            raise ValueError(f"Unknown symbol '{op}', use numbers, "
+            raise ValueError(f"Unknown symbol '{self.name}', use numbers, "
                              "^, *, /, +, -, (, ), or x")
 
     def __eq__(self, other):
@@ -270,17 +271,33 @@ class Parser(object):
 
         stack = []
         postfix = []
+
         for op in infix:
-            if isinstance(op, Operand):
-                postfix.append(op)
-            else:
-                while stack and op.precedence <= stack[-1].precedence:
-                    postfix.append(stack.pop())
+            if isinstance(op, OperandToken):
+                # operand
+                postfix.append(op.get_operand())
+            elif isinstance(op, ParenToken):
+                if op.is_open:
+                    # open parenthesis
+                    stack.append(op)
+                else:
+                    # closing parenthesis
+                    while stack and isinstance(stack[-1], OpToken):
+                        # pop all operators
+                        postfix.append(stack.pop().operator)
+                    if stack and isinstance(stack[-1], ParenToken):
+                        # open parenthesis reached
+                        stack.pop()
+            elif isinstance(op, OpToken):   
+                while (stack and isinstance(stack[-1], OpToken) and
+                        op.precedence <= stack[-1].precedence):
+                    # pop all operators with higher or equal precedence
+                    postfix.append(stack.pop().operator)
                 stack.append(op)
 
-        # push any remaining operators
+        # pop any remaining operators
         while stack:
-            postfix.append(stack.pop())
+            postfix.append(stack.pop().operator)
         
         return postfix
         
