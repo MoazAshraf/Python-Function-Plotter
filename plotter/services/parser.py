@@ -214,19 +214,25 @@ class Parser(object):
         for i in range(len(token_list)-1, -1, -1):
             tok = token_list[i]
             if isinstance(tok, OperandToken):
+                # operand
                 infix.append(tok)
                 last_nonoperator = tok
             elif isinstance(tok, ParenToken):
+                # parenthesis
                 infix.append(tok)
                 last_nonoperator = tok
+                last_operator = None
                 if not tok.is_open:
+                    # closing parenthesis
                     paren_stack.append(tok)
                 else:
+                    # open parenthesis
                     if paren_stack:
                         paren_stack.pop()
                     else:
                         raise SyntaxError("Unclosed parenthesis '('")
             elif isinstance(tok, OpToken):
+                # operator
                 if (not infix or isinstance(infix[-1], ParenToken) and
                         not infix[-1].is_open):
                     # trailing operator at the end or before closing parenthesis
@@ -237,7 +243,9 @@ class Parser(object):
                                       f"'{infix[-1].string}'")
 
                 if tok.string in ['+', '-']:
-                    if i == 0 or isinstance(token_list[i-1], OpToken):
+                    if (i == 0 or isinstance(token_list[i-1], OpToken)
+                            or (isinstance(token_list[i-1], ParenToken)
+                            and token_list[i-1].is_open)):
                         if tok.string == '-':
                             if (last_operator is not None and 
                                     last_operator.precedence > tok.precedence or

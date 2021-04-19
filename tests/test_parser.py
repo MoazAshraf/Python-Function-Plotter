@@ -91,6 +91,13 @@ class TestTokenize(object):
         expected = [OpToken('-'), FloatToken(2), OpToken('^'),
                     FloatToken(3)]
         assert parser.tokenize(list_) == expected
+    
+    def test_paren_neg_x_pow_2(self):
+        parser = Parser()
+        list_ = ['(', '-', 'x', ')', '^', '2']
+        expected = [ParenToken('('), OpToken('-'), VarToken('x'),
+                    ParenToken(')'), OpToken('^'), FloatToken(2)]
+        assert parser.tokenize(list_) == expected
 
     def test_complex_const(self):
         parser = Parser()
@@ -223,6 +230,17 @@ class TestTokensToInfix(object):
         expected = [FloatToken(-1), OpToken('*'), FloatToken(2), OpToken('^'),
                     FloatToken(-3)]
         output = parser.tokens_to_infix(tokens)
+        assert output == expected
+    
+    def test_paren_neg_2_pow_3(self):
+        parser = Parser()
+        tokens = [ParenToken('('), OpToken('-'), FloatToken(2),
+                  ParenToken(')'),OpToken('^'), FloatToken(3)]
+        expected = [ParenToken('('), FloatToken(-2), ParenToken(')'),
+                    OpToken('^'), FloatToken(3)]
+        output = parser.tokens_to_infix(tokens)
+        print(*expected)
+        print(*output)
         assert output == expected
     
     def test_neg_2_pow_neg_3_plus_1(self):
