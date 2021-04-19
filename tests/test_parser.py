@@ -344,7 +344,7 @@ class TestPostfixToExprTree(object):
         expected = None
         assert parser.postfix_to_expr_tree(postfix) == expected
 
-    def test_add(self):
+    def test_4_2_add(self):
         """
         postfix = 4 2 +
         expected:
@@ -361,7 +361,7 @@ class TestPostfixToExprTree(object):
         output = parser.postfix_to_expr_tree(postfix)
         assert output == expected
     
-    def test_mul_add(self):
+    def test_4_2_mul_1_add(self):
         """
         postfix = 4 2 * 1 +
         expected:
@@ -383,7 +383,7 @@ class TestPostfixToExprTree(object):
 
         assert output == expected
 
-    def test_add_mul(self):
+    def test_4_2_1_mul_add(self):
         """
         postfix = 4 2 1 * +
         expected:
@@ -393,7 +393,6 @@ class TestPostfixToExprTree(object):
         """
         
         parser = Parser()
-
         postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
                    MulOperator(), AddOperator()]
         expected = ExprTNode(AddOperator(),
@@ -405,42 +404,39 @@ class TestPostfixToExprTree(object):
 
         assert output == expected
 
-    def test_invalid_1_syntaxerror(self):
+    def test_4_2_mul_add(self):
         """
         postfix = 4 2 * +
         expected: SyntaxError
         """
         
         parser = Parser()
-
         postfix = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
                    AddOperator()]
         
         with pytest.raises(SyntaxError):
             parser.postfix_to_expr_tree(postfix)
     
-    def test_invalid_2_syntaxerror(self):
+    def test_4_2_1_add(self):
         """
         postfix = 4 2 1 +
         expected: SyntaxError
         """
         
         parser = Parser()
-
         postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
                    AddOperator()]
         
         with pytest.raises(SyntaxError):
             parser.postfix_to_expr_tree(postfix)
 
-    def test_invalid_3_syntaxerror(self):
+    def test_add_4_2(self):
         """
         postfix = + 4 2
         expected: SyntaxError
         """
         
         parser = Parser()
-
         postfix = [AddOperator(), Operand(value=4.0), Operand(value=2.0)]
         
         with pytest.raises(SyntaxError):
@@ -507,7 +503,7 @@ class TestParse(object):
 
         assert parser.parse(string) == expected
     
-    def test_4_plus_neg_2(self):
+    def test_4_plus_minus_2(self):
         parser = Parser()
         string = "4+-2"
         expected = ExprTNode(AddOperator(),
