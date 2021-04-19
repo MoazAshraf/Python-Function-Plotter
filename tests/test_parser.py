@@ -9,11 +9,29 @@ class TestParseToExprList(object):
         string = ""
         expected = []
         assert parser.parse_to_expr_list(string) == expected
-
-    def test_simple_const(self):
+    
+    def test_float(self):
         parser = Parser()
-        string = "4 + 2"
-        expected = [Operand(value=4.0), AddOperator(), Operand(value=2.0)]
+        string = "4.2"
+        expected = [Operand(value=4.2)]
+        assert parser.parse_to_expr_list(string) == expected
+
+    def test_float_whitespace(self):
+        parser = Parser()
+        string = "4 . 2"
+        expected = [Operand(value=4.2)]
+        assert parser.parse_to_expr_list(string) == expected
+
+    def test_add(self):
+        parser = Parser()
+        string = "4.3 + 2.23"
+        expected = [Operand(value=4.3), AddOperator(), Operand(value=2.23)]
+        assert parser.parse_to_expr_list(string) == expected
+    
+    def test_add_whitespace(self):
+        parser = Parser()
+        string = "4 . 3 + 2 . 23"
+        expected = [Operand(value=4.3), AddOperator(), Operand(value=2.23)]
         assert parser.parse_to_expr_list(string) == expected
 
     def test_complex_const(self):

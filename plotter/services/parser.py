@@ -28,7 +28,16 @@ class Parser(object):
         str_list = split_str(string, OPERATORS)
         expr = []
 
-        for op in str_list:
+        i = 0
+        while i < len(str_list):
+            op = str_list[i]
+
+            # remove leading and trailing whitespace
+            op = op.strip()
+            if not op:
+                i += 1
+                continue
+
             try:
                 # operator
                 expr.append(str_to_op(op))
@@ -39,11 +48,19 @@ class Parser(object):
                 else:
                     try:
                         # float operand
-                        val = float(op)
+                        val = ''.join(op.split())  # remove whitespace
+                        val = float(val)
                         expr.append(Operand(value=val))
                     except ValueError:
-                        raise ValueError(f"Unknown symbol '{op}', use numbers,"
-                            " ^, *, /, +, - or x")
+                        # split on whitespace and add it to the list
+                        op_list = op.split()
+                        if len(op_list) == 1:
+                            raise ValueError(f"Unknown symbol '{op}', use "
+                                "numbers, ^, *, /, +, - or x")
+                        else:
+                            str_list = str_list[:i] + op_list + str_list[i+1:]
+                            continue
+            i += 1
 
         return expr
     
