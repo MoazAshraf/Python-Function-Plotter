@@ -92,7 +92,7 @@ class Parser(object):
 
     def infix_to_postfix(self, infix):
         """
-        Converts an infix expression to postfix expression
+        Converts a valid infix expression to postfix expression
         """
 
         stack = []

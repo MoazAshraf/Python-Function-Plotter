@@ -237,119 +237,104 @@ class TestInfixToPostfix(object):
         parser = Parser()
         infix = []
         expected = []
-        assert parser.infix_to_postfix(infix) == expected
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
 
-    def test_add(self):
+    def test_4_plus_2(self):
         """
         infix = 4 + 2
         expected = 4 2 +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0)]
+        infix = [FloatToken(4), OpToken('+'), FloatToken(2)]
         expected = [Operand(value=4.0), Operand(value=2.0), AddOperator()]
-        assert parser.infix_to_postfix(infix) == expected
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
 
-    def test_add_sub(self):
+    def test_4_plus_x(self):
+        """
+        infix = 4 + x
+        expected = 4 x +
+        """
+        parser = Parser()
+        infix = [FloatToken(4), OpToken('+'), VarToken('x')]
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
+    
+    def test_4_plus_y(self):
+        """
+        infix = 4 + y
+        expected: unknown symbol
+        """
+        parser = Parser()
+        infix = [FloatToken(4), OpToken('+'), VarToken('x')]
+        
+        with pytest.raises(ValueError):
+            parser.infix_to_postfix(infix)
+        
+    def test_4_plus_2_minus_1(self):
         """
         infix = 4 + 2 - 1
         expected = 4 2 + 1 -
         """
         parser = Parser()
-        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
-                 SubOperator(), Operand(value=1.0)]
-
+        infix = [FloatToken(4.0), OpToken('+'), FloatToken(2.0), OpToken('-'),
+                 FloatToken(1.0)]
         expected = [Operand(value=4.0), Operand(value=2.0), AddOperator(),
                     Operand(value=1.0), SubOperator()]
-        assert parser.infix_to_postfix(infix) == expected
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
 
-    def test_add_mul(self):
+    def test_4_plus_2_times_1(self):
         """
         infix = 4 + 2 * 1
         expected = 4 2 1 * +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
-                 MulOperator(), Operand(value=1.0)]
-
+        infix = [FloatToken(4.0), OpToken('+'), FloatToken(2.0), OpToken('*'),
+                 FloatToken(1.0)]
         expected = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
                     MulOperator(), AddOperator()]
-        assert parser.infix_to_postfix(infix) == expected
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
 
-    def test_mul_add(self):
+    def test_4_times_2_plus_1(self):
         """
         infix = 4 * 2 + 1
         expected = 4 2 * 1 +
         """
         parser = Parser()
-        infix = [Operand(value=4.0), MulOperator(), Operand(value=2.0),
-                 AddOperator(), Operand(value=1.0)]
-
+        infix = [FloatToken(4.0), OpToken('*'), FloatToken(2.0), OpToken('+'),
+                 FloatToken(1.0)]
         expected = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
                     Operand(value=1.0), AddOperator()]
-        assert parser.infix_to_postfix(infix) == expected
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
 
-    def test_complex(self):
+    def test_paren_3(self):
         """
-        infix = 4 * x + 1 - 8^9 / 23 / 9 * 4 - x^3
-        expected = 4 x * 1 + 8 9 ^ 23 / 9 / 4 * - x 3 ^ -
-        """
-        parser = Parser()
-        infix = [Operand(value=4.0), MulOperator(), Operand(is_x=True),
-                 AddOperator(), Operand(value=1.0), SubOperator(),
-                 Operand(value=8.0), PowOperator(), Operand(value=9.0),
-                 DivOperator(), Operand(value=23.0), DivOperator(),
-                 Operand(value=9.0), MulOperator(), Operand(value=4.0),
-                 SubOperator(), Operand(is_x=True), PowOperator(),
-                 Operand(value=3.0)]
-
-        expected = [Operand(value=4.0), Operand(is_x=True), MulOperator(),
-                    Operand(value=1.0), AddOperator(), Operand(value=8.0),
-                    Operand(value=9.0), PowOperator(), Operand(value=23.0),
-                    DivOperator(), Operand(value=9.0), DivOperator(),
-                    Operand(value=4.0), MulOperator(), SubOperator(),
-                    Operand(is_x=True), Operand(value=3.0), PowOperator(),
-                    SubOperator()]
-
-        assert parser.infix_to_postfix(infix) == expected
-
-    def test_invalid_1(self):
-        """
-        infix = 4 * 2 +
-        expected = 4 2 * +
+        infix = (3)
+        expected = 3
         """
         parser = Parser()
-        infix = [Operand(value=4.0), MulOperator(), Operand(value=2.0),
-                 AddOperator()]
-
-        expected = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
-                    AddOperator()]
-        assert parser.infix_to_postfix(infix) == expected
-
-    def test_invalid_2(self):
-        """
-        infix = + 4 * 2
-        expected = 4 2 * +
-        """
-        parser = Parser()
-        infix = [AddOperator(), Operand(value=4.0), MulOperator(),
-                 Operand(value=2.0)]
-
-        expected = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
-                    AddOperator()]
-        assert parser.infix_to_postfix(infix) == expected
+        infix = [ParenToken('('), FloatToken(3.0), ParenToken(')')]
+        expected = [Operand(value=3.0)]
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
     
-    def test_invalid_3(self):
+    def test_2_times_paren_4_plus_3(self):
         """
-        infix = 4 + 2 1
-        expected = 4 2 1 +
+        infix = 2*(4+3)
+        expected = 2 4 3 + *
         """
         parser = Parser()
-        infix = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
-                 Operand(value=1.0)]
-
-        expected = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
-                    AddOperator()]
-        assert parser.infix_to_postfix(infix) == expected
+        infix = [FloatToken(2.0), OpToken('*'), ParenToken('('),
+                 FloatToken(3.0), OpToken('+'), FloatToken(3.0),
+                 ParenToken(')')]
+        expected = [Operand(value=2.0), Operand(value=4.0), Operand(value=3.0),
+                    AddOperator(), MulOperator()]
+        output = parser.infix_to_postfix(infix)
+        assert output == expected
 
 
 class TestPostfixToExprTree(object):
