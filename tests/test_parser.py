@@ -33,20 +33,35 @@ class TestParseToExprList(object):
         string = "4 . 3 + 2 . 23"
         expected = [Operand(value=4.3), AddOperator(), Operand(value=2.23)]
         assert parser.parse_to_expr_list(string) == expected
+    
+    def test_negative_2(self):
+        parser = Parser()
+        string = "-2"
+        expected = [Operand(value=-2)]
+        assert parser.parse_to_expr_list(string) == expected
+    
+    def test_plus_plus_minus_minus_plus_minus_2(self):
+        parser = Parser()
+        string = "++--+-2"
+        expected = [Operand(value=-2)]
+        assert parser.parse_to_expr_list(string) == expected
 
     def test_complex_const(self):
         parser = Parser()
         string = "4 + 2 * -8.2^42 / 9"
         expected = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
-                    MulOperator(), SubOperator(), Operand(value=8.2), PowOperator(),
+                    MulOperator(), Operand(value=-8.2), PowOperator(),
                     Operand(value=42), DivOperator(), Operand(value=9)]
-        assert parser.parse_to_expr_list(string) == expected
+        output = parser.parse_to_expr_list(string)
+        print(*output)
+        print(*expected)
+        assert output == expected
 
     def test_complex_x(self):
         parser = Parser()
         string = "x + 2 * -x^42 / 9"
         expected = [Operand(is_x=True), AddOperator(), Operand(value=2.0),
-                    MulOperator(), SubOperator(), Operand(is_x=True), PowOperator(),
+                    MulOperator(), Operand(is_neg_x=True), PowOperator(),
                     Operand(value=42), DivOperator(), Operand(value=9)]
         assert parser.parse_to_expr_list(string) == expected
 

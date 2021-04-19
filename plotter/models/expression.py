@@ -76,9 +76,17 @@ class Operand(object):
     An operand can either by x or a float value.
     """
 
-    def __init__(self, is_x: bool=False, value: float=None):
-        self.is_x = is_x
-        if not is_x:
+    def __init__(self, is_x: bool=False, is_neg_x: bool=False,
+            value: float=None):
+        
+        if is_x:
+            self.is_x = True
+            self.is_neg = False
+        elif is_neg_x:
+            self.is_x = True
+            self.is_neg = True
+        else:
+            self.is_x = False
             self.value = value
     
     def __eq__(self, other):
@@ -86,7 +94,7 @@ class Operand(object):
             return False
 
         if self.is_x and other.is_x:
-            return True
+            return self.is_neg == other.is_neg
         elif self.is_x != other.is_x:
             return False
         else:
@@ -94,9 +102,22 @@ class Operand(object):
     
     def __str__(self):
         if self.is_x:
-            return 'x'
+            if self.is_neg:
+                return '-x'
+            else:
+                return 'x'
         else:
             return str(self.value)
+    
+    def reverse_sign(self):
+        """
+        Reverses the sign of this operand
+        """
+
+        if self.is_x:
+            self.is_neg = not self.is_neg
+        else:
+            self.value = -self.value
     
     def evaluate(self, x=0.0):
         """
@@ -106,7 +127,7 @@ class Operand(object):
         """
 
         if self.is_x:
-            return x
+            return x * (-1 if self.is_neg else 1)
         else:
             if isinstance(x, np.ndarray):
                 return np.full_like(x, self.value)
