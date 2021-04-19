@@ -578,9 +578,7 @@ class TestParse(object):
     def test_neg_2(self):
         parser = Parser()
         string = "-2"
-        expected = ExprTNode(MulOperator(),
-                    left=ExprTNode(Operand(value=-1)),
-                    right=ExprTNode(Operand(value=2)))
+        expected = ExprTNode(Operand(value=-2))
 
         assert parser.parse(string) == expected
     
@@ -589,9 +587,7 @@ class TestParse(object):
         string = "4+-2"
         expected = ExprTNode(AddOperator(),
                     left=ExprTNode(Operand(value=4)),
-                    right=ExprTNode(MulOperator(),
-                            left=ExprTNode(Operand(value=-1)),
-                            right=ExprTNode(Operand(value=2))))
+                    right=ExprTNode(Operand(value=-2)))
 
         output = parser.parse(string)
         assert output == expected
