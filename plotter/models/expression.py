@@ -20,7 +20,10 @@ class Operator(object):
         return self.string
 
     def __eq__(self, other):
+        if not isinstance(other, Operator):
+            return False
         return self.string == other.string
+
 
 class PowOperator(Operator):
     def __init__(self):
@@ -109,16 +112,6 @@ class Operand(object):
         else:
             return str(self.value)
     
-    def reverse_sign(self):
-        """
-        Reverses the sign of this operand
-        """
-
-        if self.is_x:
-            self.is_neg = not self.is_neg
-        else:
-            self.value = -self.value
-    
     def evaluate(self, x=0.0):
         """
         Evaluate the operand and return the result as a float.
@@ -171,7 +164,7 @@ class ExprTNode(object):
             return op.evaluate(x)
         elif isinstance(op, Operator):
             if self.left is None or self.right is None:
-                raise Exception(f"Expression tree incorrect syntactical "
+                raise Exception(f"Expression tree has an incorrect syntactical "
                     "structure")
                     
             # postorder traversal

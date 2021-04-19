@@ -1,76 +1,90 @@
 import pytest
-from plotter.services.parser import Parser
+from plotter.services.parser import *
 from plotter.models.expression import *
 
 
-class TestParseToExprList(object):
+class TestTokenize(object):
     def test_empty(self):
         parser = Parser()
-        string = ""
+        list_ = []
         expected = []
-        assert parser.parse_to_expr_list(string) == expected
+        assert parser.tokenize(list_) == expected
     
     def test_float(self):
         parser = Parser()
-        string = "4.2"
-        expected = [Operand(value=4.2)]
-        assert parser.parse_to_expr_list(string) == expected
+        list_ = ["4.2"]
+        expected = [FloatToken(4.2)]
+        assert parser.tokenize(list_) == expected
 
     def test_float_whitespace(self):
         parser = Parser()
-        string = "4 . 2"
-        expected = [Operand(value=4.2)]
-        assert parser.parse_to_expr_list(string) == expected
+        list_ = ["4 . 2"]
+        expected = [FloatToken(4.2)]
+        assert parser.tokenize(list_) == expected
 
     def test_add(self):
         parser = Parser()
-        string = "4.3 + 2.23"
-        expected = [Operand(value=4.3), AddOperator(), Operand(value=2.23)]
-        assert parser.parse_to_expr_list(string) == expected
+        list_ = ["4.3 ", "+", " 2.23"]
+        expected = [FloatToken(4.3), OpToken('+'), FloatToken(2.23)]
+        assert parser.tokenize(list_) == expected
     
     def test_add_whitespace(self):
         parser = Parser()
-        string = "4 . 3 + 2 . 23"
-        expected = [Operand(value=4.3), AddOperator(), Operand(value=2.23)]
-        assert parser.parse_to_expr_list(string) == expected
+        list_ = ["4 . 3", "+", "2 . 23"]
+        expected = [FloatToken(4.3), OpToken('+'), FloatToken(2.23)]
+        assert parser.tokenize(list_) == expected
     
-    def test_negative_2(self):
+    def test_pos_2(self):
         parser = Parser()
-        string = "-2"
-        expected = [Operand(value=-2)]
-        assert parser.parse_to_expr_list(string) == expected
+        list_ = ["+", "2"]
+        expected = [OpToken('+'), FloatToken(2)]
+        assert parser.tokenize(list_) == expected
     
-    def test_plus_plus_minus_minus_plus_minus_2(self):
+    def test_4_plus_neg_2(self):
         parser = Parser()
-        string = "++--+-2"
-        expected = [Operand(value=-2)]
-        assert parser.parse_to_expr_list(string) == expected
+        list_ = ['4', '+', '-', '2']
+        expected = [FloatToken(4), OpToken('+'), OpToken('-'),
+                    FloatToken(2)]
+        assert parser.tokenize(list_) == expected
+
+    def test_neg_2_pow_3(self):
+        parser = Parser()
+        list_ = ['-', '2', '^', '3']
+        expected = [OpToken('-'), FloatToken(2), OpToken('^'),
+                    FloatToken(3)]
+        assert parser.tokenize(list_) == expected
 
     def test_complex_const(self):
         parser = Parser()
-        string = "4 + 2 * -8.2^42 / 9"
-        expected = [Operand(value=4.0), AddOperator(), Operand(value=2.0),
-                    MulOperator(), Operand(value=-8.2), PowOperator(),
-                    Operand(value=42), DivOperator(), Operand(value=9)]
-        output = parser.parse_to_expr_list(string)
-        print(*output)
-        print(*expected)
+        list_ = ['4 ', '+', ' 2 ', '*', ' ', '-', '8.2', '^', '42',
+                  ' ', '/', ' 9']
+        expected = [FloatToken(4), OpToken('+'), FloatToken(2),
+                    OpToken('*'), OpToken('-'), FloatToken(8.2),
+                    OpToken('^'), FloatToken(42), OpToken('/'),
+                    FloatToken(9)]
+        output = parser.tokenize(list_)
         assert output == expected
 
-    def test_complex_x(self):
+    def test_complex_var(self):
         parser = Parser()
-        string = "x + 2 * -x^42 / 9"
-        expected = [Operand(is_x=True), AddOperator(), Operand(value=2.0),
-                    MulOperator(), Operand(is_neg_x=True), PowOperator(),
-                    Operand(value=42), DivOperator(), Operand(value=9)]
-        assert parser.parse_to_expr_list(string) == expected
-
-    def test_unknown(self):
-        parser = Parser()
-        string = "y + 2 * -y^42 / 9"
-        with pytest.raises(ValueError):
-            parser.parse_to_expr_list(string)
+        list_ = ['x ', '+', ' 2 ', '*', ' ', '-', 'y', '^', '42 ', '/', ' 9']
+        expected = [VarToken('x'), OpToken('+'), FloatToken(2), OpToken('*'),
+                    OpToken('-'), VarToken('y'), OpToken('^'), FloatToken(42),
+                    OpToken('/'), FloatToken(9)]
+        assert parser.tokenize(list_) == expected
     
+    def test_parentheses(self):
+        parser = Parser()
+        list_ = ['(', '(', '64. 2', '+', 'x', ')', ')']
+        expected = [ParenToken('('), ParenToken('('), FloatToken(64.2),
+                    OpToken('+'), VarToken('x'), ParenToken(')'),
+                    ParenToken(')')]
+        assert parser.tokenize(list_) == expected
+
+
+class TestTokensToInfix(object):
+    pass
+
 
 class TestInfixToPostfix(object):
     def test_empty(self):
@@ -353,21 +367,26 @@ class TestParse(object):
         with pytest.raises(ValueError):
             parser.parse(string)
     
-    def test_negative_2(self):
+    def test_neg_2(self):
         parser = Parser()
         string = "-2"
-        expected = ExprTNode(Operand(value=-2.0))
+        expected = ExprTNode(MulOperator(),
+                    left=ExprTNode(Operand(value=-1)),
+                    right=ExprTNode(Operand(value=2)))
 
         assert parser.parse(string) == expected
     
-    def test_4_plus_negative_2(self):
+    def test_4_plus_neg_2(self):
         parser = Parser()
         string = "4+-2"
         expected = ExprTNode(AddOperator(),
-                    left=ExprTNode(Operand(value=4.0)),
-                    right=ExprTNode(Operand(value=-2.0)))
+                    left=ExprTNode(Operand(value=4)),
+                    right=ExprTNode(MulOperator(),
+                            left=ExprTNode(Operand(value=-1)),
+                            right=ExprTNode(Operand(value=2))))
 
-        assert parser.parse(string) == expected
+        output = parser.parse(string)
+        assert output == expected
     
     def test_4_plus_plus_plus_minus_minus_2(self):
         parser = Parser()

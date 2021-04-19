@@ -5,118 +5,80 @@ from ..util import split_str
 from ..models.expression import *
 
 
+SEP_LIST = ['^', '*', '/', '+', '-', '(', ')']
+
+
+class Token(object):
+    """
+    A token can be an operator, parentheses, a variable or a float
+    """
+
+    pass
+
+
+class OpToken(Token):
+    """
+    Represents an operator
+    """
+    pass
+
+
+class ParenToken(Token):
+    """
+    Represents an opening or closing parenthesis
+    """
+    pass
+
+
+class FloatToken(Token):
+    """
+    Represents a float
+    """
+
+    pass
+
+
+class VarToken(Token):
+    """
+    Represents a variable, e.g. x
+    """
+    
+    pass
+
+
 class Parser(object):
     def __init__(self):
         pass
     
     def parse(self, string):
         """
-        Parses an infix expression string to a binary expression tree
+        Parses a string that represents a mathematical expression into a binary
+        expression tree
         """
 
         # putting it all together
-        infix = self.parse_to_expr_list(string)
+        list_ = split_str(string, SEP_LIST)
+        token_list = self.tokenize(list_)
+        infix = self.tokens_to_infix(token_list)
         postfix = self.infix_to_postfix(infix)
         tree = self.postfix_to_expr_tree(postfix)
+
         return tree
 
-    def _parse_raw_expr_list(self, string):
+    def tokenize(self, list_):
         """
-        Parses a string to an infix expression list of operators and operands.
-        Doesn't take care of positive and negative signs
-        """
-        
-        str_list = split_str(string, OPERATORS)
-        expr = []
-
-        i = 0
-        while i < len(str_list):
-            op = str_list[i]
-
-            # remove leading and trailing whitespace
-            op = op.strip()
-            if not op:
-                i += 1
-                continue
-
-            try:
-                # operator
-                expr.append(str_to_op(op))
-            except:
-                # x operand
-                if op == 'x':
-                    expr.append(Operand(is_x=True))
-                else:
-                    try:
-                        # float operand
-                        val = ''.join(op.split())  # remove whitespace
-                        val = float(val)
-                        expr.append(Operand(value=val))
-                    except ValueError:
-                        # split on whitespace and add it to the list
-                        op_list = op.split()
-                        if len(op_list) == 1:
-                            raise ValueError(f"Unknown symbol '{op}', use "
-                                "numbers, ^, *, /, +, - or x")
-                        else:
-                            str_list = str_list[:i] + op_list + str_list[i+1:]
-                            continue
-            i += 1
-        
-        return expr
-
-    def _combine_signs_in_expr(self, expr):
-        """
-        Combines positive and negative signs with operands
+        Converts a list of strings into a list of valid tokens
         """
 
-        if not expr:
-            return []
-
-        new_expr = []
-        current_operand = None
-        for i in range(len(expr)-1, -1, -1):
-            if isinstance(expr[i], Operand):
-                current_operand = expr[i]
-            else:
-                if current_operand is None:
-                    # trailing operator
-                    raise SyntaxError("Invalid expression")
-
-                # if there's a sign after this operator, combine it with the
-                # next operand
-                if isinstance(new_expr[-1], AddOperator):
-                    new_expr = new_expr[:-1]
-                elif isinstance(new_expr[-1], SubOperator):
-                    current_operand.reverse_sign()
-                    new_expr = new_expr[:-1]
-            
-                # stop tracking this operand if the operator is neither + nor -
-                if (not isinstance(expr[i], AddOperator) and
-                        not isinstance(expr[i], SubOperator)):
-                    # another operator type
-                    current_operand = None
-
-            new_expr.append(expr[i])
-
-        # combine final positive or negative sign with operand
-        if isinstance(new_expr[-1], AddOperator):
-            new_expr = new_expr[:-1]
-        elif isinstance(new_expr[-1], SubOperator):
-            current_operand.reverse_sign()
-            new_expr = new_expr[:-1]
-
-        return list(reversed(new_expr))
-
-    def parse_to_expr_list(self, string):
+        return []
+    
+    def tokens_to_infix(self, token_list):
         """
-        Parses a string to an infix expression list of operators and operands.
-        Also takes care of positive and negative signs.
+        Converts a list of tokens into a valid infix expression taking care of
+        leading positive and negative signs, unclosed parentheses, etc.
         """
 
-        expr = self._parse_raw_expr_list(string)
-        expr = self._combine_signs_in_expr(expr)
-        return expr
+        return []
 
     def infix_to_postfix(self, infix):
         """
