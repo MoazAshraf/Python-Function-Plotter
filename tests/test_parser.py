@@ -27,6 +27,9 @@ class TestTokenEquality(object):
     
     def test_x_and_x(self):
         assert VarToken('x') == VarToken('x')
+
+    def test_x_and_neg_x(self):
+        assert VarToken('x') != VarToken('x', is_neg=True)
     
     def test_x_and_y(self):
         assert VarToken('x') != VarToken('y')
@@ -130,7 +133,7 @@ class TestTokensToInfix(object):
         expected = [FloatToken(4), OpToken('+'), FloatToken(2)]
         output = parser.tokens_to_infix(tokens)
         assert output == expected
-    
+
     def test_pos_2(self):
         parser = Parser()
         tokens = [OpToken('+'), FloatToken(2)]
@@ -145,6 +148,13 @@ class TestTokensToInfix(object):
         output = parser.tokens_to_infix(tokens)
         assert output == expected
     
+    def test_neg_x(self):
+        parser = Parser()
+        tokens = [OpToken('-'), VarToken('x')]
+        expected = [VarToken('x', is_neg=True)]
+        output = parser.tokens_to_infix(tokens)
+        assert output == expected
+    
     def test_pos_pos_neg_neg_2(self):
         parser = Parser()
         tokens = [OpToken('+'), OpToken('+'), OpToken('-'), OpToken('-'),
@@ -153,10 +163,25 @@ class TestTokensToInfix(object):
         output = parser.tokens_to_infix(tokens)
         assert output == expected
     
+    def test_pos_pos_neg_neg_x(self):
+        parser = Parser()
+        tokens = [OpToken('+'), OpToken('+'), OpToken('-'), OpToken('-'),
+                  VarToken('x')]
+        expected = [VarToken('x')]
+        output = parser.tokens_to_infix(tokens)
+        assert output == expected
+    
     def test_4_plus_neg_2(self):
         parser = Parser()
         tokens = [FloatToken(4), OpToken('+'), OpToken('-'), FloatToken(2)]
-        expected = [FloatToken(4), OpToken('-'), FloatToken(2)]
+        expected = [FloatToken(4), OpToken('+'), FloatToken(-2)]
+        output = parser.tokens_to_infix(tokens)
+        assert output == expected
+    
+    def test_4_plus_pos_2(self):
+        parser = Parser()
+        tokens = [FloatToken(4), OpToken('+'), OpToken('+'), FloatToken(2)]
+        expected = [FloatToken(4), OpToken('+'), FloatToken(2)]
         output = parser.tokens_to_infix(tokens)
         assert output == expected
     
@@ -171,8 +196,8 @@ class TestTokensToInfix(object):
     def test_neg_2_pow_3(self):
         parser = Parser()
         tokens = [OpToken('-'), FloatToken(2), OpToken('^'), FloatToken(3)]
-        expected = [FloatToken(-1), OpToken('*'), ParenToken('('),
-                    FloatToken(2), OpToken('^'), FloatToken(3), ParenToken(')')]
+        expected = [FloatToken(-1), OpToken('*'), FloatToken(2), OpToken('^'),
+                    FloatToken(3)]
         output = parser.tokens_to_infix(tokens)
         assert output == expected
     
@@ -192,12 +217,29 @@ class TestTokensToInfix(object):
         assert output == expected
     
     def test_neg_2_pow_neg_3(self):
-        # -2^-3 => [-1]*2^[-3]
         parser = Parser()
         tokens = [OpToken('-'), FloatToken(2), OpToken('^'), OpToken('-'),
                   FloatToken(3)]
         expected = [FloatToken(-1), OpToken('*'), FloatToken(2), OpToken('^'),
                     FloatToken(-3)]
+        output = parser.tokens_to_infix(tokens)
+        assert output == expected
+    
+    def test_neg_2_pow_neg_3_plus_1(self):
+        parser = Parser()
+        tokens = [OpToken('-'), FloatToken(2), OpToken('^'), OpToken('-'),
+                  FloatToken(3), OpToken('+'), FloatToken(1)]
+        expected = [FloatToken(-1), OpToken('*'), FloatToken(2), OpToken('^'),
+                    FloatToken(-3), OpToken('+'), FloatToken(1)]
+        output = parser.tokens_to_infix(tokens)
+        assert output == expected
+    
+    def test_neg_2_pow_neg_x_plus_1(self):
+        parser = Parser()
+        tokens = [OpToken('-'), FloatToken(2), OpToken('^'), OpToken('-'),
+                  VarToken('x'), OpToken('+'), FloatToken(1)]
+        expected = [FloatToken(-1), OpToken('*'), FloatToken(2), OpToken('^'),
+                    VarToken('x', is_neg=True), OpToken('+'), FloatToken(1)]
         output = parser.tokens_to_infix(tokens)
         assert output == expected
     
@@ -228,6 +270,12 @@ class TestTokensToInfix(object):
     def test_trailing_operator(self):
         parser = Parser()
         tokens = [FloatToken(2), OpToken('*')]
+        with pytest.raises(SyntaxError):
+            parser.tokens_to_infix(tokens)
+    
+    def test_2_times_pow_2(self):
+        parser = Parser()
+        tokens = [FloatToken(2), OpToken('*'), OpToken('^'), FloatToken(2)]
         with pytest.raises(SyntaxError):
             parser.tokens_to_infix(tokens)
 

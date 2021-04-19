@@ -22,6 +22,8 @@ class OpToken(Token):
     
     def __init__(self, string):
         self.string = string
+        self.operator = str_to_op(string)
+        self.precedence = self.operator.precedence
     
     def __eq__(self, other):
         if not isinstance(other, OpToken):
@@ -52,7 +54,27 @@ class ParenToken(Token):
         return ('(' if self.is_open else ')')
 
 
-class FloatToken(Token):
+class OperandToken(Token):
+    """
+    Represents an operand
+    """
+
+    def negate(self):
+        """
+        Set this token to its negative
+        """
+
+        pass
+
+    def get_operand(self) -> Operand:
+        """
+        Returns an Operand object representing this token if possible
+        """
+
+        pass
+
+
+class FloatToken(OperandToken):
     """
     Represents a float
     """
@@ -60,6 +82,12 @@ class FloatToken(Token):
     def __init__(self, value):
         self.value = value
     
+    def negate(self):
+        self.value = -self.value
+    
+    def get_operand(self) -> Operand:
+        return Operand(value=value)
+
     def __eq__(self, other):
         if not isinstance(other, FloatToken):
             return False
@@ -69,21 +97,33 @@ class FloatToken(Token):
         return str(self.value)
 
 
-class VarToken(Token):
+class VarToken(OperandToken):
     """
     Represents a variable, e.g. x
     """
     
-    def __init__(self, name):
+    def __init__(self, name, is_neg=False):
         self.name = name
+        self.is_neg = is_neg
     
+    def negate(self):
+        self.is_neg = not self.is_neg
+
+    def get_operand(self) -> Operand:
+        if self.name == 'x':
+            operand = Operand(is_x=True)
+            operand.is_neg = self.is_neg
+        else:
+            raise ValueError(f"Unknown symbol '{op}', use numbers, "
+                             "^, *, /, +, -, (, ), or x")
+
     def __eq__(self, other):
         if not isinstance(other, VarToken):
             return False
-        return self.name == other.name
+        return self.name == other.name and self.is_neg == other.is_neg
     
     def __str__(self):
-        return self.name
+        return f"{'-' if self.is_neg else ''}{self.name}"
 
 
 class Parser(object):
@@ -160,9 +200,68 @@ class Parser(object):
         # 2^-3 => 2^[-3]
         # -(3) => [-1]*(3)
         # -2^-3 => [-1]*2^[-3]
+        # -2^3 => [-1]*2^3
+        # -2*3 => [-2]*3
 
+        if not token_list:
+            return []
 
-        return []
+        infix = []
+        paren_stack = []
+        last_nonoperator = None
+        last_operator = None
+        for i in range(len(token_list)-1, -1, -1):
+            tok = token_list[i]
+            if isinstance(tok, OperandToken):
+                infix.append(tok)
+                last_nonoperator = tok
+            elif isinstance(tok, ParenToken):
+                infix.append(tok)
+                last_nonoperator = tok
+                if not tok.is_open:
+                    paren_stack.append(tok)
+                else:
+                    if paren_stack:
+                        paren_stack.pop()
+                    else:
+                        raise SyntaxError("Unclosed parenthesis '('")
+            elif isinstance(tok, OpToken):
+                if (not infix or isinstance(infix[-1], ParenToken) and
+                        not infix[-1].is_open):
+                    # trailing operator at the end or before closing parenthesis
+                    raise SyntaxError(f"Unexpected operator '{tok.string}'")
+
+                if isinstance(infix[-1], OpToken):
+                    raise SyntaxError("Unexpected operator "
+                                      f"'{infix[-1].string}'")
+
+                if tok.string in ['+', '-']:
+                    if i == 0 or isinstance(token_list[i-1], OpToken):
+                        if tok.string == '-':
+                            if (last_operator is not None and 
+                                    last_operator.precedence > tok.precedence or
+                                    isinstance(last_nonoperator, ParenToken) and
+                                    last_nonoperator.is_open):
+                                # add -1 * if '(' or higher precedence operator
+                                infix.append(OpToken('*'))
+                                infix.append(FloatToken(-1))
+                            else:
+                                # negate if operand
+                                last_nonoperator.negate()
+                    else:
+                        infix.append(tok)
+                else:
+                    infix.append(tok)
+                
+                last_operator = tok
+
+        if isinstance(infix[-1], OpToken):
+            raise SyntaxError(f"Unexpected operator '{tok.string}'")
+
+        if paren_stack:
+            raise SyntaxError("Unopen parenthesis ')'")
+
+        return list(reversed(infix))
 
     def infix_to_postfix(self, infix):
         """
