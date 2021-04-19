@@ -5,8 +5,7 @@ from ..util import split_str
 from ..models.expression import *
 
 
-SEP_LIST = ['^', '*', '/', '+', '-', '(', ')']
-
+SEP_LIST = OPERATORS + ['(', ')']
 
 class Token(object):
     """
@@ -20,14 +19,37 @@ class OpToken(Token):
     """
     Represents an operator
     """
-    pass
+    
+    def __init__(self, string):
+        self.string = string
+    
+    def __eq__(self, other):
+        if not isinstance(other, OpToken):
+            return False
+        return self.string == other.string
+    
+    def __str__(self):
+        return self.string
 
 
 class ParenToken(Token):
     """
     Represents an opening or closing parenthesis
     """
-    pass
+
+    def __init__(self, string):
+        if string == '(':
+            self.is_open = True
+        elif string == ')':
+            self.is_open = False
+    
+    def __eq__(self, other):
+        if not isinstance(other, ParenToken):
+            return False
+        return self.is_open == other.is_open
+    
+    def __str__(self):
+        return ('(' if self.is_open else ')')
 
 
 class FloatToken(Token):
@@ -35,7 +57,16 @@ class FloatToken(Token):
     Represents a float
     """
 
-    pass
+    def __init__(self, value):
+        self.value = value
+    
+    def __eq__(self, other):
+        if not isinstance(other, FloatToken):
+            return False
+        return self.value == other.value
+    
+    def __str__(self):
+        return str(self.value)
 
 
 class VarToken(Token):
@@ -43,7 +74,16 @@ class VarToken(Token):
     Represents a variable, e.g. x
     """
     
-    pass
+    def __init__(self, name):
+        self.name = name
+    
+    def __eq__(self, other):
+        if not isinstance(other, VarToken):
+            return False
+        return self.name == other.name
+    
+    def __str__(self):
+        return self.name
 
 
 class Parser(object):
@@ -70,7 +110,41 @@ class Parser(object):
         Converts a list of strings into a list of valid tokens
         """
 
-        return []
+        token_list = []
+        i = 0
+        while i < len(list_):
+            op = list_[i]
+
+            # remove leading and trailing whitespace
+            op = op.strip()
+            if not op:
+                i += 1
+                continue
+
+            if op in ['(', ')']:
+                # parenthesis
+                token_list.append(ParenToken(op))
+            elif op in OPERATORS:
+                # operator
+                token_list.append(OpToken(op))
+            else:
+                try:
+                    # float operand
+                    value = ''.join(op.split())  # remove whitespace
+                    value = float(value)
+                    token_list.append(FloatToken(value))
+                except ValueError:
+                    # split on whitespace and add it to the list
+                    op_list = op.split()
+                    if len(op_list) == 1:
+                        # variable
+                        token_list.append(VarToken(op))
+                    else:
+                        list_ = list_[:i] + op_list + list_[i+1:]
+                        continue
+            i += 1
+        
+        return token_list
     
     def tokens_to_infix(self, token_list):
         """
