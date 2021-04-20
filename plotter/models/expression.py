@@ -81,7 +81,7 @@ class Operand(object):
     """
 
     def __init__(self, is_x=False, is_neg_x=False, value=None):
-                """
+        """
         Parameters
         ----------
         is_x : bool

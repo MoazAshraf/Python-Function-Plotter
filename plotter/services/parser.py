@@ -6,6 +6,7 @@ from ..util import split_str
 from ..models.expression import *
 
 
+# list of separators to use when separating tokens
 SEP_LIST = OPERATORS + ['(', ')']
 
 
@@ -15,7 +16,23 @@ class ParserError(Exception):
 
 def str_to_op(string):
     """
-    Converts a string to an operator.
+    Converts a string to an operator if possible.
+
+    Parameters
+    ----------
+    string : str
+        The string representation of the operator.
+        Can be one of '^', '*', '/', '+', or '-'.
+
+    Returns
+    -------
+    operator : Operator
+        A matching Operator object
+    
+    Raises
+    ------
+    ParserError
+        Unknown operator
     """
 
     if string in OPERATORS_DICT:
@@ -39,6 +56,13 @@ class OpToken(Token):
     """
     
     def __init__(self, string):
+        """
+        Parameters
+        ----------
+        string : str
+            The string representation of the operator.
+        """
+
         self.string = string
         self.operator = str_to_op(string)
         self.precedence = self.operator.precedence
@@ -58,6 +82,13 @@ class ParenToken(Token):
     """
 
     def __init__(self, string):
+        """
+        Parameters
+        ----------
+        string : str
+            The string representation of the parenthesis, either '(' or ')'. 
+        """
+
         if string == '(':
             self.is_open = True
         elif string == ')':
@@ -79,14 +110,17 @@ class OperandToken(Token):
 
     def negate(self):
         """
-        Set this token to its negative
+        Set this operand to its negative.
         """
 
         pass
 
-    def get_operand(self) -> Operand:
+    def get_operand(self):
         """
-        Returns an Operand object representing this token if possible
+        Returns
+        -------
+        operand : Operand
+            An Operand object representing this token
         """
 
         pass
@@ -98,12 +132,30 @@ class FloatToken(OperandToken):
     """
 
     def __init__(self, value):
+        """
+        Parameters
+        ----------
+        value : float
+            The float value for this operand token
+        """
+
         self.value = value
     
     def negate(self):
+        """
+        Set this operand to its negative.
+        """
+
         self.value = -self.value
     
-    def get_operand(self) -> Operand:
+    def get_operand(self):
+        """
+        Returns
+        -------
+        operand : Operand
+            An Operand object representing this token
+        """
+
         return Operand(value=self.value)
 
     def __eq__(self, other):
@@ -121,13 +173,32 @@ class VarToken(OperandToken):
     """
     
     def __init__(self, name, is_neg=False):
+        """
+        Parameters
+        ----------
+        name : string
+            The name of this variable operand token
+        is_neg : bool
+            Whether this variable should be negated when evaluated
+        """
         self.name = name
         self.is_neg = is_neg
     
     def negate(self):
+        """
+        Set this operand to its negative.
+        """
+
         self.is_neg = not self.is_neg
 
     def get_operand(self) -> Operand:
+        """
+        Returns
+        -------
+        operand : Operand
+            An Operand object representing this token
+        """
+
         if self.name == 'x':
             operand = Operand(is_x=True)
             operand.is_neg = self.is_neg
@@ -146,13 +217,32 @@ class VarToken(OperandToken):
 
 
 class Parser(object):
-    def __init__(self):
-        pass
+    """
+    Represents a Parser service. The Parser takes a raw string as input,
+    validates it, tokenizes it and finally builds an expression tree that
+    can be evaluated.
+    """
     
     def parse(self, string):
         """
         Parses a string that represents a mathematical expression into a binary
         expression tree
+
+        Parameters
+        ----------
+        string : str
+            The raw string to validate and parse
+
+        Returns
+        -------
+        tree : ExprTNode
+            The binary expression tree
+        
+        Raises
+        ------
+        ParserError
+            Syntax and semantics errors, e.g. unexpected operators, unclosed
+            parentheses
         """
 
         # putting it all together
@@ -166,7 +256,17 @@ class Parser(object):
 
     def tokenize(self, list_):
         """
-        Converts a list of strings into a list of valid tokens
+        Converts a list of strings into a list of known tokens
+
+        Parameters
+        ----------
+        list_ : list(str)
+            A list of raw strings
+
+        Returns
+        -------
+        token_list : list(Token)
+            A list of known tokens
         """
 
         token_list = []
@@ -209,6 +309,22 @@ class Parser(object):
         """
         Converts a list of tokens into a valid infix expression taking care of
         leading positive and negative signs, unclosed parentheses, etc.
+
+        Parameters
+        ----------
+        token_list : list(Token)
+            A list of known tokens
+
+        Returns
+        -------
+        infix : list(Token)
+            A valid expression
+        
+        Raises
+        ------
+        ParserError
+            Syntax and semantics errors, e.g. unexpected operators, unclosed
+            parentheses
         """
 
         # [] means a single token
@@ -295,7 +411,18 @@ class Parser(object):
 
     def infix_to_postfix(self, infix):
         """
-        Converts a valid infix expression to postfix expression
+        Converts a valid infix expression to a postfix expression.
+
+        Parameters
+        ----------
+        infix : list(Token)
+            A valid infix expression
+
+        Returns
+        -------
+        postfix : list(Operator, Operand)
+            A list of Operator and Operand objects representing a valid postfix
+            expression
         """
 
         stack = []
@@ -332,7 +459,23 @@ class Parser(object):
         
     def postfix_to_expr_tree(self, postfix):
         """
-        Converts a postfix expression to a binary expression tree
+        Converts a postfix expression to a binary expression tree.
+
+        Parameters
+        ----------
+        postfix : list(Operator, Operand)
+            A list of Operator and Operand objects representing a valid postfix
+            expression
+
+        Returns
+        -------
+        tree : ExprTNode
+            A valid binary expression tree ready to be evaluated.
+        
+        Raises
+        ------
+        ParserError
+            Invalid postfix expression
         """
 
         if not postfix:
