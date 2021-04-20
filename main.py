@@ -5,7 +5,7 @@ from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QLabel
 from plotter.views.mainwidget import MainWidget
 from plotter.services.parser import Parser
-from plotter.services.evaluator import Evaluator
+from plotter.services.plotter import Plotter
 from plotter.presenter import Presenter
 
 def create_mvp():
@@ -15,8 +15,8 @@ def create_mvp():
 
     # services
     parser = Parser()
-    evaluator = Evaluator()
-    services = {"parser": parser, "evaluator": evaluator}
+    plotter = Plotter()
+    services = {"parser": parser, "plotter": plotter}
 
     # views
     widget = MainWidget()

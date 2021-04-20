@@ -2,7 +2,6 @@
 ## rendered by the application. Represents the view (passive) in the MVP
 ## architecture.
 
-import numpy as np
 from PySide2 import QtCore
 from PySide2.QtCore import Slot, Signal
 from PySide2.QtWidgets import (
@@ -10,8 +9,6 @@ from PySide2.QtWidgets import (
     QLayout, QVBoxLayout, QHBoxLayout,
     QSizePolicy
     )
-
-from ..models.expression import ExprTNode
 from .mplwidget import MplCanvasWidget
 
 
@@ -137,7 +134,7 @@ class MainWidget(QWidget):
         self.message_label.setText(string)
         self.message_label.setVisible(True if string else False)
     
-    def render_plot(self, x: np.ndarray, y: np.ndarray):
+    def render_plot(self, x, y):
         """
         Renders the plot provided by the x and y values
         """
