@@ -221,8 +221,18 @@ class TestTokensToInfix(object):
     def test_neg_paren_3(self):
         parser = Parser()
         tokens = [OpToken('-'), ParenToken('('), FloatToken(3), ParenToken(')')]
-        expected = [FloatToken(-1), OpToken('*'), ParenToken('('),
-                    FloatToken(3), ParenToken(')')]
+        expected = [ParenToken('('), FloatToken(-1), OpToken('*'), 
+                    ParenToken('('), FloatToken(3), ParenToken(')'),
+                    ParenToken(')')]
+        output = parser.tokens_to_infix(tokens)
+        print(*expected)
+        print(*output)
+        assert output == expected
+    
+    def test_paren_neg_3(self):
+        parser = Parser()
+        tokens = [ParenToken('('), OpToken('-'), FloatToken(3), ParenToken(')')]
+        expected = [ParenToken('('), FloatToken(-3), ParenToken(')')]
         output = parser.tokens_to_infix(tokens)
         assert output == expected
     
@@ -242,6 +252,8 @@ class TestTokensToInfix(object):
         expected = [ParenToken('('), FloatToken(-2), ParenToken(')'),
                     OpToken('^'), FloatToken(3)]
         output = parser.tokens_to_infix(tokens)
+        print(*expected)
+        print(*output)
         assert output == expected
     
     def test_neg_2_pow_neg_3_plus_1(self):
@@ -301,6 +313,13 @@ class TestTokensToInfix(object):
     def test_2_times_pow_2(self):
         parser = Parser()
         tokens = [FloatToken(2), OpToken('*'), OpToken('^'), FloatToken(2)]
+        with pytest.raises(ParserError):
+            parser.tokens_to_infix(tokens)
+    
+    def test_6_paren_times_x(self):
+        parser = Parser()
+        tokens = [FloatToken(6), ParenToken('('), OpToken('*'), VarToken('x'),
+                  ParenToken(')')]
         with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
 

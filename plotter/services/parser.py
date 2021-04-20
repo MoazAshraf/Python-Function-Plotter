@@ -305,6 +305,168 @@ class Parser(object):
         
         return token_list
     
+    def _get_open_paren_index(self, token_list, closing_index):
+        """
+        Starts at the closing parenthesis and goes in reverse until the open
+        parenthesis is found. This method is used internally by
+        tokens_to_infix() and shouldn't be called directly.
+
+        Parameters
+        ----------
+        token_list : list(Token)
+            The full token list being processed
+        closing_index : int
+            The index of the closing parenthesis
+        
+        Returns
+        -------
+        open_index : int
+            The index of the open parenthesis
+        
+        Raises
+        ------
+        ParserError
+            Unopened parenthesis or empty parenthesis
+        """
+
+        i = closing_index
+        stack = [token_list[i]]
+        j = i-1
+        while j >= 0 and stack:
+            tok = token_list[j]
+            if isinstance(tok, ParenToken):
+                if tok.is_open:
+                    stack.pop()
+                else:
+                    stack.append(tok)
+            j -= 1
+        j += 1
+
+        if j == i-1:
+            raise ParserError("Empty parenthesis")
+
+        if not stack:
+            return j
+        else:
+            raise ParserError("Unopened parenthesis ')'")
+    
+    def _collapse_operand_signs(self, token_list, operand_index):
+        """
+        Starts at the operand and goes in reverse collecting all positive and
+        negative signs belonging to this operand.
+
+        Parameters
+        ----------
+        token_list : list(Token)
+            The full token list being processed
+        operand_index : int
+            The index of the operand
+        
+        Returns
+        -------
+        next_index : int
+            The index of the next token to process, -1 if no tokens left
+        sign : int
+            The final sign of the operand
+        """
+
+        i = operand_index
+        j = i-1
+        prev_sign = 1
+        sign = 1
+        while j >= 0:
+            tok = token_list[j]
+            if isinstance(tok, OpToken):
+                if tok.string in ['+', '-']:
+                    prev_sign = sign
+                    if tok.string == '-':
+                        sign = -sign
+                else:
+                    break
+            else:
+                if (isinstance(tok, OperandToken) or
+                        isinstance(tok, ParenToken) and not tok.is_open):
+                    sign = prev_sign
+                    j += 1
+                break
+            j -= 1
+        return j, sign
+
+    def _tokens_to_infix(self, token_list):
+        """
+        Builds valid infix expression from a list of tokens in reverse for
+        efficiency. Called internally by tokens_to_infix(), shouldn't be called
+        directly.
+
+        Parameters
+        ----------
+        token_list : list(Token)
+            A list of known tokens
+
+        Returns
+        -------
+        infix : list(Token)
+            A reversed valid infix expression
+        
+        Raises
+        ------
+        ParserError
+            Syntax and semantics errors, e.g. unexpected operators, unclosed
+            parentheses        
+        """
+
+        infix = []
+        i = len(token_list)-1
+        last_operator = None
+        while i >= 0:
+            tok = token_list[i]
+            if isinstance(tok, OperandToken):
+                i, sign = self._collapse_operand_signs(token_list, i)
+                infix.append(tok)
+                if sign == -1:
+                    if last_operator and last_operator.precedence > 2:
+                        # unary + and - have precedence 2, e.g. -x^2 => -1*x^2
+                        infix.extend([OpToken('*'), FloatToken(-1)])
+                    else:
+                        tok.negate()
+                continue
+            elif isinstance(tok, ParenToken):
+                if not tok.is_open:
+                    # closing parenthesis
+                    j = self._get_open_paren_index(token_list, i)
+                    
+                    # recursive call on sub expression
+                    tokens = token_list[j:i+1]
+                    sub_infix = [ParenToken(')')]
+                    sub_infix.extend(self._tokens_to_infix(tokens[1:-1]))
+                    sub_infix.append(ParenToken('('))
+                    
+                    # collect sub expression outer sign
+                    i, sign = self._collapse_operand_signs(token_list, j)
+                    if sign == -1:
+                        infix.append(ParenToken(')'))
+                        infix.extend(sub_infix)
+                        infix.extend([OpToken('*'), FloatToken(-1),
+                                      ParenToken('(')])
+                    else:
+                        infix.extend(sub_infix)
+                    continue
+                else:
+                    # opening parenthesis
+                    raise ParserError("Unclosed parenthesis '('")
+            elif isinstance(tok, OpToken):
+                if not infix or isinstance(infix[-1], OpToken):
+                    raise ParserError(f"Unexpected operator '{tok}'")
+                last_operator = tok
+                infix.append(tok)
+
+            i -= 1
+        
+        if isinstance(infix[-1], OpToken):
+            raise ParserError(f"Unexpected operator '{infix[-1]}'")
+
+        return infix
+
     def tokens_to_infix(self, token_list):
         """
         Converts a list of tokens into a valid infix expression taking care of
@@ -327,87 +489,10 @@ class Parser(object):
             parentheses
         """
 
-        # [] means a single token
-        # -2 => [-2]
-        # +2 => 2
-        # 4+-2 => 4+[-2]
-        # 4++--2 => 4+2
-        # 2^-3 => 2^[-3]
-        # -(3) => [-1]*(3)
-        # -2^-3 => [-1]*2^[-3]
-        # -2^3 => [-1]*2^3
-        # -2*3 => [-2]*3
-
         if not token_list:
             return []
 
-        infix = []
-        paren_stack = []
-        last_nonoperator = None
-        last_operator = None
-        for i in range(len(token_list)-1, -1, -1):
-            tok = token_list[i]
-            if isinstance(tok, OperandToken):
-                # operand
-                infix.append(tok)
-                last_nonoperator = tok
-            elif isinstance(tok, ParenToken):
-                # parenthesis
-                if not tok.is_open:
-                    # closing parenthesis
-                    paren_stack.append(tok)
-                else:
-                    # open parenthesis
-                    if (infix and isinstance(infix[-1], ParenToken) and
-                            not infix[-1].is_open):
-                        raise ParserError("Parentheses cannot be empty")
-                    if paren_stack:
-                        paren_stack.pop()
-                    else:
-                        raise ParserError("Unclosed parenthesis '('")
-                infix.append(tok)
-                last_nonoperator = tok
-                last_operator = None
-            elif isinstance(tok, OpToken):
-                # operator
-                if (not infix or isinstance(infix[-1], ParenToken) and
-                        not infix[-1].is_open):
-                    # trailing operator at the end or before closing parenthesis
-                    raise ParserError(f"Unexpected operator '{tok.string}'")
-
-                if isinstance(infix[-1], OpToken):
-                    raise ParserError("Unexpected operator "
-                                      f"'{infix[-1].string}'")
-
-                if tok.string in ['+', '-']:
-                    if (i == 0 or isinstance(token_list[i-1], OpToken)
-                            or (isinstance(token_list[i-1], ParenToken)
-                            and token_list[i-1].is_open)):
-                        if tok.string == '-':
-                            if (last_operator is not None and 
-                                    last_operator.precedence > tok.precedence or
-                                    isinstance(last_nonoperator, ParenToken) and
-                                    last_nonoperator.is_open):
-                                # add -1 * if '(' or higher precedence operator
-                                infix.append(OpToken('*'))
-                                infix.append(FloatToken(-1))
-                            else:
-                                # negate if operand
-                                last_nonoperator.negate()
-                    else:
-                        infix.append(tok)
-                else:
-                    infix.append(tok)
-                
-                last_operator = tok
-
-        if isinstance(infix[-1], OpToken):
-            raise ParserError(f"Unexpected operator '{tok.string}'")
-
-        if paren_stack:
-            raise ParserError("Unopen parenthesis ')'")
-
-        return list(reversed(infix))
+        return list(reversed(self._tokens_to_infix(token_list)))
 
     def infix_to_postfix(self, infix):
         """
