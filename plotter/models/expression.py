@@ -1,5 +1,5 @@
-## The expression module contains classes needed to form expression trees that
-## can be evaluated
+## The expression module contains entities needed to form binary expression
+## trees that can be evaluated.
 
 from ..util import EvaluationError
 import numpy as np
@@ -7,12 +7,23 @@ import numpy as np
 
 class Operator(object):
     """
-    Base operator class.
+    Base binary operator class.
     Each operator has a string representation, precedence and a python function
     of the form (float, float) => float.
     """
 
     def __init__(self, string, precedence, func):
+        """
+        Parameters
+        ----------
+        string : str
+            The operator's string representation
+        precedence : int
+            The operator's precedence
+        func : (float, float) -> float
+            The function used to evaluate this operator
+        """
+
         self.string = string
         self.precedence = precedence
         self.func = func
@@ -66,12 +77,21 @@ OPERATORS = list(OPERATORS_DICT.keys())
 
 class Operand(object):
     """
-    An operand can either by x or a float value.
+    An operand can either be x or a float value.
     """
 
-    def __init__(self, is_x: bool=False, is_neg_x: bool=False,
-            value: float=None):
-        
+    def __init__(self, is_x=False, is_neg_x=False, value=None):
+                """
+        Parameters
+        ----------
+        is_x : bool
+            If True, creates an 'x' operand
+        is_neg_x : bool
+            If True, creates a '-x' operand
+        value : float
+            If provided, creates a float operand with this value
+        """
+
         if is_x:
             self.is_x = True
             self.is_neg = False
@@ -104,9 +124,19 @@ class Operand(object):
     
     def evaluate(self, x=0.0):
         """
-        Evaluate the operand and return the result as a float.
-        x is the value to use if the operand is x. Defaults to 0.
-        x can be a numpy array.
+        Evaluate the operand.
+        
+        Parameters
+        ----------
+        x
+            The value of x to substitute into the operand if it's a variable
+            'x' operand. Can be a numpy ndarray.
+            Defaults to 0.
+
+        Returns
+        -------
+        result
+            Has the same type as x
         """
 
         if self.is_x:
@@ -125,11 +155,20 @@ class ExprTNode(object):
     expression to be evaluated for different values of x.
 
     This class represents a node in an expression tree.
-    Each tree has a key which can be either an operator or an operand and
-    pointers to left and right children.
     """
 
     def __init__(self, key, left=None, right=None):
+        """
+        Parameters
+        ----------
+        key : Operator or Operand
+            The key of this node, an Operator or Operand object
+        left : ExprTNode
+            The left child of this node
+        right : ExprTNode
+            The right child of this node
+        """
+
         self.key = key
         self.left = left
         self.right = right
@@ -144,9 +183,24 @@ class ExprTNode(object):
     
     def evaluate(self, x=0.0):
         """
-        Evaluate the expression tree and return the result.
-        x is the value to set every occurence of 'x' to. Defaults to 0.
-        x can be a numpy array.
+        Evaluate the expression tree.
+        
+        Parameters
+        ----------
+        x
+            The value of x to substitute into 'x' operands.
+            Can be a numpy ndarray.
+            Defaults to 0.
+
+        Returns
+        -------
+        result
+            Has the same type as x
+        
+        Raises
+        ------
+        EvaluationError
+            Tree is built incorrectly
         """
 
         op = self.key
@@ -163,3 +217,4 @@ class ExprTNode(object):
             return op.func(a, b)
         else:
             raise EvaluationError(f"Unexpected object '{op}' in tree node")
+            
