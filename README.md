@@ -27,6 +27,20 @@ Install the dependencies with pip
 pip install -r requirements.txt
 ```
 
+## Running the Tests
+This project uses pytest and pytest-qt. After installing the dependencies, you
+can run all the unit tests using
+
+```
+pytest -m unit
+```
+
+To run end-to-end tests, use
+
+```
+pytest -m e2e
+```
+
 ## Architecture
 I used an architecture similar to the Model-View-Presenter architecture with the
 passive view as explained by Martin Fowler. The main difference is that the
