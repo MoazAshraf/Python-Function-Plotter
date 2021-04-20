@@ -242,8 +242,6 @@ class TestTokensToInfix(object):
         expected = [ParenToken('('), FloatToken(-2), ParenToken(')'),
                     OpToken('^'), FloatToken(3)]
         output = parser.tokens_to_infix(tokens)
-        print(*expected)
-        print(*output)
         assert output == expected
     
     def test_neg_2_pow_neg_3_plus_1(self):
@@ -279,6 +277,12 @@ class TestTokensToInfix(object):
     def test_unopened_and_unclosed_paren(self):
         parser = Parser()
         tokens = [ParenToken(')'), FloatToken(2), ParenToken('(')]
+        with pytest.raises(ParserError):
+            parser.tokens_to_infix(tokens)
+    
+    def test_empty_paren(self):
+        parser = Parser()
+        tokens = [ParenToken('('), ParenToken(')')]
         with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
 

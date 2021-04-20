@@ -237,18 +237,21 @@ class Parser(object):
                 last_nonoperator = tok
             elif isinstance(tok, ParenToken):
                 # parenthesis
-                infix.append(tok)
-                last_nonoperator = tok
-                last_operator = None
                 if not tok.is_open:
                     # closing parenthesis
                     paren_stack.append(tok)
                 else:
                     # open parenthesis
+                    if (infix and isinstance(infix[-1], ParenToken) and
+                            not infix[-1].is_open):
+                        raise ParserError("Parentheses cannot be empty")
                     if paren_stack:
                         paren_stack.pop()
                     else:
                         raise ParserError("Unclosed parenthesis '('")
+                infix.append(tok)
+                last_nonoperator = tok
+                last_operator = None
             elif isinstance(tok, OpToken):
                 # operator
                 if (not infix or isinstance(infix[-1], ParenToken) and
