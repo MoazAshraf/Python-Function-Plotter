@@ -36,24 +36,21 @@ class Presenter(object):
         try:
             self.plotter.validate_x_range(x_min, x_max)
         except XRangeError as e:
-            self.main_widget.update_message(str(e))
+            self.main_widget.update_range_error_message(str(e))
             error = True
+        else:
+            self.main_widget.update_range_error_message()
 
         try:
             # parse
             func_expr = self.parser.parse(func_string)
         except ParserError as e:
-            self.main_widget.update_message(str(e))
+            self.main_widget.update_syntax_error_message(str(e))
             error = True
+        else:
+            self.main_widget.update_syntax_error_message()
     
         if not error and func_expr is not None:
-            try:
-                # plot and render
-                x, y = self.plotter.plot(func_expr, x_min, x_max)
-                self.main_widget.render_plot(x, y)
-            except EvaluationError as e:
-                self.main_widget.update_message(str(e))
-                error = True
-        
-        if not error:
-            self.main_widget.update_message("")
+            # plot and render
+            x, y = self.plotter.plot(func_expr, x_min, x_max)
+            self.main_widget.render_plot(x, y)
