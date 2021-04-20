@@ -4,6 +4,7 @@ from plotter.services.plotter import *
 from plotter.models.expression import *
 
 
+@pytest.mark.unit
 class TestPlot(object):
     def test_x_squared(self):
         plotter = Plotter()

@@ -1,8 +1,10 @@
+import pytest
 from PySide2 import QtCore
 from pytestqt import qtbot
 from main import create_mvp
 
 
+@pytest.mark.e2e
 def test_plot(qtbot):
     # create the MVP components
     services, views, presenter = create_mvp()
@@ -25,6 +27,7 @@ def test_plot(qtbot):
     assert not range_error_label.isVisible()
     assert plot_widget.axes.lines   # check if there's a plot
 
+@pytest.mark.e2e
 def test_unexpected_operator(qtbot):
     # create the MVP components
     services, views, presenter = create_mvp()
@@ -48,6 +51,7 @@ def test_unexpected_operator(qtbot):
     assert syntax_error_label.text().startswith("Unexpected operator")
     assert not plot_widget.axes.lines   # check if there's no plot
 
+@pytest.mark.e2e
 def test_unknown_symbol(qtbot):
     # create the MVP components
     services, views, presenter = create_mvp()
@@ -71,6 +75,7 @@ def test_unknown_symbol(qtbot):
     assert syntax_error_label.text().startswith("Unknown symbol")
     assert not plot_widget.axes.lines   # check if there's no plot
 
+@pytest.mark.e2e
 def test_invalid_range(qtbot):
     # create the MVP components
     services, views, presenter = create_mvp()
@@ -98,6 +103,7 @@ def test_invalid_range(qtbot):
     assert range_error_label.text().startswith("X Max must be greater")
     assert not plot_widget.axes.lines   # check if there's no plot
 
+@pytest.mark.e2e
 def test_invalid_range_and_unexpected_operator(qtbot):
         # create the MVP components
     services, views, presenter = create_mvp()

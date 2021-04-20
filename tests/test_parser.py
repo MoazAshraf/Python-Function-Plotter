@@ -3,6 +3,7 @@ from plotter.services.parser import *
 from plotter.models.expression import *
 
 
+@pytest.mark.unit
 class TestTokenEquality(object):
     def test_4_and_4(self):
         assert FloatToken(4) == FloatToken(4)
@@ -41,6 +42,7 @@ class TestTokenEquality(object):
         assert ParenToken('(') != ParenToken(')')
 
 
+@pytest.mark.unit
 class TestTokenize(object):
     def test_empty(self):
         parser = Parser()
@@ -127,6 +129,7 @@ class TestTokenize(object):
         assert parser.tokenize(list_) == expected
 
 
+@pytest.mark.unit
 class TestTokensToInfix(object):
     def test_empty(self):
         parser = Parser()
@@ -298,6 +301,7 @@ class TestTokensToInfix(object):
             parser.tokens_to_infix(tokens)
 
 
+@pytest.mark.unit
 class TestInfixToPostfix(object):
     def test_empty(self):
         parser = Parser()
@@ -436,6 +440,7 @@ class TestInfixToPostfix(object):
         assert output == expected
 
 
+@pytest.mark.unit
 class TestPostfixToExprTree(object):
     def test_empty(self):
         parser = Parser()
@@ -542,6 +547,7 @@ class TestPostfixToExprTree(object):
             parser.postfix_to_expr_tree(postfix)
 
 
+@pytest.mark.unit
 class TestParse(object):
     def test_empty(self):
         parser = Parser()

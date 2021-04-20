@@ -3,6 +3,7 @@ import numpy as np
 from plotter.models.expression import *
 
 
+@pytest.mark.unit
 class TestOperandEquality(object):
     def test_float(self):
         assert Operand(value=4.0) == Operand(value=4.0)
@@ -29,6 +30,7 @@ class TestOperandEquality(object):
         assert Operand(is_neg_x=True) == Operand(is_neg_x=True)
 
 
+@pytest.mark.unit
 class TestExprTNodeEquality(object):
     def test_equal(self):
         tree_a = ExprTNode(AddOperator(),
@@ -75,6 +77,7 @@ class TestExprTNodeEquality(object):
         assert tree_a != tree_b
 
 
+@pytest.mark.unit
 class TestExprTreeEvaluate(object):
     def test_4_plus_2(self):
         tree = ExprTNode(AddOperator(),

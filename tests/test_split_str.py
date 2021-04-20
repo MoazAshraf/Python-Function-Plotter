@@ -1,6 +1,8 @@
+import pytest
 from plotter.util import split_str
 
 
+@pytest.mark.unit
 class TestSplitStr(object):
     def test_empty(self):
         string = ""
