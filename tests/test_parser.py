@@ -264,37 +264,37 @@ class TestTokensToInfix(object):
     def test_unclosed_paren(self):
         parser = Parser()
         tokens = [ParenToken('('), FloatToken(2)]
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
     
     def test_unopened_paren(self):
         parser = Parser()
         tokens = [FloatToken(2), ParenToken(')')]
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
     
     def test_unopened_and_unclosed_paren(self):
         parser = Parser()
         tokens = [ParenToken(')'), FloatToken(2), ParenToken('(')]
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
 
     def test_leading_operator(self):
         parser = Parser()
         tokens = [OpToken('*'), FloatToken(2)]
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
 
     def test_trailing_operator(self):
         parser = Parser()
         tokens = [FloatToken(2), OpToken('*')]
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
     
     def test_2_times_pow_2(self):
         parser = Parser()
         tokens = [FloatToken(2), OpToken('*'), OpToken('^'), FloatToken(2)]
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.tokens_to_infix(tokens)
 
 
@@ -347,7 +347,7 @@ class TestInfixToPostfix(object):
         parser = Parser()
         infix = [FloatToken(4), OpToken('+'), VarToken('y')]
         
-        with pytest.raises(ValueError):
+        with pytest.raises(ParserError):
             parser.infix_to_postfix(infix)
         
     def test_4_plus_2_minus_1(self):
@@ -506,39 +506,39 @@ class TestPostfixToExprTree(object):
     def test_4_2_mul_add(self):
         """
         postfix = 4 2 * +
-        expected: SyntaxError
+        expected: ParserError
         """
         
         parser = Parser()
         postfix = [Operand(value=4.0), Operand(value=2.0), MulOperator(),
                    AddOperator()]
         
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.postfix_to_expr_tree(postfix)
     
     def test_4_2_1_add(self):
         """
         postfix = 4 2 1 +
-        expected: SyntaxError
+        expected: ParserError
         """
         
         parser = Parser()
         postfix = [Operand(value=4.0), Operand(value=2.0), Operand(value=1.0),
                    AddOperator()]
         
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.postfix_to_expr_tree(postfix)
 
     def test_add_4_2(self):
         """
         postfix = + 4 2
-        expected: SyntaxError
+        expected: ParserError
         """
         
         parser = Parser()
         postfix = [AddOperator(), Operand(value=4.0), Operand(value=2.0)]
         
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.postfix_to_expr_tree(postfix)
 
 
@@ -579,18 +579,18 @@ class TestParse(object):
         
         assert parser.parse(string) == expected
     
-    def test_4_plus_syntaxerror(self):
+    def test_4_plus_ParserError(self):
         parser = Parser()
         string = "4 +"
 
-        with pytest.raises(SyntaxError):
+        with pytest.raises(ParserError):
             parser.parse(string)
     
-    def test_y_valueerror(self):
+    def test_y_ParserError(self):
         parser = Parser()
         string = "y"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ParserError):
             parser.parse(string)
     
     def test_neg_2(self):

@@ -1,6 +1,7 @@
 ## The expression module contains classes needed to form expression trees that
 ## can be evaluated
 
+from ..util import EvaluationError
 import numpy as np
 
 
@@ -61,17 +62,6 @@ OPERATORS_DICT = {
 
 # list of operators as strings
 OPERATORS = list(OPERATORS_DICT.keys())
-
-def str_to_op(string):
-    """
-    Converts a string to an operator.
-    """
-
-    if string in OPERATORS_DICT:
-        OpClass = OPERATORS_DICT[string]
-        return OpClass()
-    else:
-        raise SyntaxError(f"Unknown operator '{string}'")
 
 
 class Operand(object):
@@ -164,12 +154,12 @@ class ExprTNode(object):
             return op.evaluate(x)
         elif isinstance(op, Operator):
             if self.left is None or self.right is None:
-                raise Exception(f"Expression tree has an incorrect syntactical "
-                    "structure")
+                raise EvaluationError(f"Expression tree has an incorrect "
+                    "syntactical structure")
                     
             # postorder traversal
             a = self.left.evaluate(x)
             b = self.right.evaluate(x)
             return op.func(a, b)
         else:
-            raise Exception(f"Unexpected object '{op}' in tree node")
+            raise EvaluationError(f"Unexpected object '{op}' in tree node")

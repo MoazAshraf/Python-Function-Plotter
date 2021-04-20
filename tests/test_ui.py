@@ -1,22 +1,20 @@
 from PySide2 import QtCore
 from pytestqt import qtbot
-from plotter.views.mainwidget import MainWidget
-from plotter.controller import Controller
-from plotter.services.parser import Parser
-from main import create_mvc
+from main import create_mvp
 
 
 def test_plot(qtbot):
-    # create the MVC components and the qtbot instance
-    parser, widget, controller = create_mvc()
-    widget.show()   # show widget to test label visibility
-    qtbot.addWidget(widget)
+    # create the MVP components and the qtbot instance
+    services, views, presenter = create_mvp()
+    main_widget = views['main_widget']
+    main_widget.show()   # show widget to test label visibility
+    qtbot.addWidget(main_widget)
 
     # aliases for ui elements
-    func_input = widget.func_widget.func_input
-    plot_button = widget.func_widget.plot_button
-    message_label = widget.message_label
-    plot_widget = widget.plot_widget
+    func_input = main_widget.func_widget.func_input
+    plot_button = main_widget.func_widget.plot_button
+    message_label = main_widget.message_label
+    plot_widget = main_widget.plot_widget
 
     # user interaction
     func_input.setText("x^2")
@@ -26,16 +24,17 @@ def test_plot(qtbot):
     assert plot_widget.axes.lines   # check if there's a plot
 
 def test_unexpected_operator(qtbot):
-    # create the MVC components and the qtbot instance
-    parser, widget, controller = create_mvc()
-    widget.show()   # show widget to test label visibility
-    qtbot.addWidget(widget)
+    # create the MVP components and the qtbot instance
+    services, views, presenter = create_mvp()
+    main_widget = views['main_widget']
+    main_widget.show()   # show widget to test label visibility
+    qtbot.addWidget(main_widget)
 
     # aliases for ui elements
-    func_input = widget.func_widget.func_input
-    plot_button = widget.func_widget.plot_button
-    message_label = widget.message_label
-    plot_widget = widget.plot_widget
+    func_input = main_widget.func_widget.func_input
+    plot_button = main_widget.func_widget.plot_button
+    message_label = main_widget.message_label
+    plot_widget = main_widget.plot_widget
 
     # user interaction
     func_input.setText("x^")
@@ -46,16 +45,17 @@ def test_unexpected_operator(qtbot):
     assert not plot_widget.axes.lines   # check if there's no plot
 
 def test_unknown_symbol(qtbot):
-    # create the MVC components and the qtbot instance
-    parser, widget, controller = create_mvc()
-    widget.show()   # show widget to test label visibility
-    qtbot.addWidget(widget)
+    # create the MVP components and the qtbot instance
+    services, views, presenter = create_mvp()
+    main_widget = views['main_widget']
+    main_widget.show()   # show widget to test label visibility
+    qtbot.addWidget(main_widget)
 
     # aliases for ui elements
-    func_input = widget.func_widget.func_input
-    plot_button = widget.func_widget.plot_button
-    message_label = widget.message_label
-    plot_widget = widget.plot_widget
+    func_input = main_widget.func_widget.func_input
+    plot_button = main_widget.func_widget.plot_button
+    message_label = main_widget.message_label
+    plot_widget = main_widget.plot_widget
 
     # user interaction
     func_input.setText("y")

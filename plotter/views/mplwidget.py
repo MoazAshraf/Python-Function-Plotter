@@ -1,4 +1,4 @@
-## The matplotlib canvas widget.
+## The Matplotlib canvas widget responsible for rendering the plot.
 
 import numpy as np
 import matplotlib
@@ -20,7 +20,12 @@ class MplCanvasWidget(FigureCanvas):
 
         FigureCanvas.updateGeometry(self)
     
-    def plot(self, x, y, x_min, x_max):
+    def render_plot(self, x, y):
+        """
+        Renders the plot provided by the x and y values
+        """
+        
+        x_min, x_max = x[0], x[-1]
         self.axes.cla()
         self.axes.set_xlim(x_min, x_max)
         self.set_labels()

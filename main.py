@@ -5,31 +5,40 @@ from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QLabel
 from plotter.views.mainwidget import MainWidget
 from plotter.services.parser import Parser
-from plotter.controller import Controller
+from plotter.services.evaluator import Evaluator
+from plotter.presenter import Presenter
 
-def create_mvc():
-    # create and show the main widget (view)
+def create_mvp():
+    """
+    Create instances of the services, views and presenter and returns them
+    """
+
+    # services
+    parser = Parser()
+    evaluator = Evaluator()
+    services = {"parser": parser, "evaluator": evaluator}
+
+    # views
     widget = MainWidget()
     size = (640, 640)
     widget.setMinimumSize(*size)
     widget.resize(*size)
     widget.setWindowTitle("Function Plotter")
+    views = {"main_widget": widget}
 
-    # create an instance of the function parser service
-    parser = Parser()
+    # create the presenter
+    presenter = Presenter(services, views)
 
-    # create the controller
-    controller = Controller(parser, widget)
-
-    return parser, widget, controller
+    return services, views, presenter
 
 if __name__ == "__main__":
     # create the Qt application
     app = QApplication([])
 
-    # MVC components
-    parser, widget, controller = create_mvc()
-    widget.show()
+    # MVP components
+    services, views, presenter = create_mvp()
+    main_widget = views['main_widget']
+    main_widget.show()
 
     # run the main Qt loop
     sys.exit(app.exec_())

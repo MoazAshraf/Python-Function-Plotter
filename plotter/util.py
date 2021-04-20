@@ -1,4 +1,8 @@
-## Helper functions
+## Helper classes and functions
+
+class EvaluationError(Exception):
+    pass
+
 
 def split_str(string, sep=[',']):
     """

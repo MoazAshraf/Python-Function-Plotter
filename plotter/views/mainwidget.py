@@ -1,5 +1,6 @@
 ## The main widget contains the whole user interface and is the widget directly
-## rendered by the application. Represents the View in the MVC pattern.
+## rendered by the application. Represents the view (passive) in the MVP
+## architecture.
 
 import numpy as np
 from PySide2 import QtCore
@@ -73,7 +74,7 @@ class FunctionWidget(CustomHBoxWidget):
 
 class MainWidget(QWidget):
     # define signals
-    on_plot = Signal(str, np.ndarray)
+    on_plot = Signal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -112,9 +113,7 @@ class MainWidget(QWidget):
     
     @Slot()
     def _on_plot_button_clicked(self):
-        x_min, x_max = self.axis_range_widget.get_x_values()
-        x = np.linspace(x_min, x_max, 1000)
-        self.on_plot.emit(self.get_input_string(), x)
+        self.on_plot.emit()
     
     def get_input_string(self):
         """
@@ -122,6 +121,13 @@ class MainWidget(QWidget):
         """
 
         return self.func_widget.func_input.toPlainText()
+    
+    def get_x_range(self):
+        """
+        Returns the x min and max values as floats
+        """
+
+        return self.axis_range_widget.get_x_values()
 
     def update_message(self, string):
         """
@@ -131,9 +137,9 @@ class MainWidget(QWidget):
         self.message_label.setText(string)
         self.message_label.setVisible(True if string else False)
     
-    def plot(self, x: np.ndarray, y: np.ndarray):
+    def render_plot(self, x: np.ndarray, y: np.ndarray):
         """
-        Plot the provided x and y values
+        Renders the plot provided by the x and y values
         """
 
-        self.plot_widget.plot(x, y, *self.axis_range_widget.get_x_values())
+        self.plot_widget.render_plot(x, y)

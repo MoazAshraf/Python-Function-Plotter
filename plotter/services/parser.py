@@ -1,11 +1,29 @@
-## The parser validates and parses user input (functions of x) into an
-## executable tree of operations. It represents a Model in the MVC pattern.
+## The parser service validates the input expression and parses it to an
+## expression tree. It is part of the application domain model in the MVP
+## architecture.
 
 from ..util import split_str
 from ..models.expression import *
 
 
 SEP_LIST = OPERATORS + ['(', ')']
+
+
+class ParserError(Exception):
+    pass
+
+
+def str_to_op(string):
+    """
+    Converts a string to an operator.
+    """
+
+    if string in OPERATORS_DICT:
+        OpClass = OPERATORS_DICT[string]
+        return OpClass()
+    else:
+        raise ParserError(f"Unknown operator '{string}'")
+
 
 class Token(object):
     """
@@ -115,8 +133,8 @@ class VarToken(OperandToken):
             operand.is_neg = self.is_neg
             return operand
         else:
-            raise ValueError(f"Unknown symbol '{self.name}', use numbers, "
-                             "^, *, /, +, -, (, ), or x")
+            raise ParserError(f"Unknown symbol '{self.name}', use numbers, "
+                                "^, *, /, +, -, (, ), or x")
 
     def __eq__(self, other):
         if not isinstance(other, VarToken):
@@ -230,16 +248,16 @@ class Parser(object):
                     if paren_stack:
                         paren_stack.pop()
                     else:
-                        raise SyntaxError("Unclosed parenthesis '('")
+                        raise ParserError("Unclosed parenthesis '('")
             elif isinstance(tok, OpToken):
                 # operator
                 if (not infix or isinstance(infix[-1], ParenToken) and
                         not infix[-1].is_open):
                     # trailing operator at the end or before closing parenthesis
-                    raise SyntaxError(f"Unexpected operator '{tok.string}'")
+                    raise ParserError(f"Unexpected operator '{tok.string}'")
 
                 if isinstance(infix[-1], OpToken):
-                    raise SyntaxError("Unexpected operator "
+                    raise ParserError("Unexpected operator "
                                       f"'{infix[-1].string}'")
 
                 if tok.string in ['+', '-']:
@@ -265,10 +283,10 @@ class Parser(object):
                 last_operator = tok
 
         if isinstance(infix[-1], OpToken):
-            raise SyntaxError(f"Unexpected operator '{tok.string}'")
+            raise ParserError(f"Unexpected operator '{tok.string}'")
 
         if paren_stack:
-            raise SyntaxError("Unopen parenthesis ')'")
+            raise ParserError("Unopen parenthesis ')'")
 
         return list(reversed(infix))
 
@@ -328,10 +346,9 @@ class Parser(object):
                     node = ExprTNode(op, left=left, right=right)
                     stack.append(node)
                 else:
-                    # TODO: be more specific
-                    raise SyntaxError("Invalid expression")
+                    raise ParserError("Invalid expression")
 
         if len(stack) == 1:
             return stack[-1]
         else:
-            raise SyntaxError("Invalid expression")
+            raise ParserError("Invalid expression")
