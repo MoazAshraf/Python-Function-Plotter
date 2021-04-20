@@ -21,7 +21,8 @@ class Presenter(object):
 
     def __init__(self, services, views):
         """
-        Parameters:
+        Parameters
+        ----------
         services : dict
             A dictionary of services to use. Must have a Parser with key
             'parser' and a Plotter with key 'plotter'

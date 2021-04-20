@@ -6,7 +6,19 @@ class EvaluationError(Exception):
 
 def split_str(string, sep=[',']):
     """
-    Splits a string based on the list of separators, keeping the seprators
+    Splits a string based on the list of separators, keeping the seprators.
+
+    Parameters
+    ----------
+    string : str
+        The string to split
+    sep : list(str)
+        The list of separators. Defaults to [','].
+    
+    Returns
+    -------
+    list_ : list(str)
+        The list of separated strings and separators.
     """
 
     list_ = []
