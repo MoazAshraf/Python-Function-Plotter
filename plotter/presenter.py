@@ -12,7 +12,24 @@ from .services.plotter import XRangeError
 
 
 class Presenter(object):
+    """
+    Represents the Presenter in th MVP pattern. It's responsible for:
+    - Observing changes to the view
+    - Invoking services for validating and parsing inputs
+    - Updating the view to render the plot or show error messages
+    """
+
     def __init__(self, services, views):
+        """
+        Parameters:
+        services : dict
+            A dictionary of services to use. Must have a Parser with key
+            'parser' and a Plotter with key 'plotter'
+        views : dict
+            A dictionary of views to control. Must have a MainWidget with key
+            'main_widget'
+        """
+
         self.services = services
         self.views = views
 
@@ -30,23 +47,29 @@ class Presenter(object):
         """
 
         error = False
+
+        # clear error messages
         self.main_widget.update_syntax_error_message()
         self.main_widget.update_range_error_message()
         
+        # get the functino input text
         func_string = self.main_widget.get_input_string()
+        
         try:
+            # validate that x min and x max are floats
             x_min, x_max = self.main_widget.get_x_range()
         except ValueError as e:
             self.main_widget.update_range_error_message(str(e))
         else:
             try:
+                # validate that x min and x max form a valid range
                 self.plotter.validate_x_range(x_min, x_max)
             except XRangeError as e:
                 self.main_widget.update_range_error_message(str(e))
                 error = True
 
             try:
-                # parse
+                # parse the input function expression
                 func_expr = self.parser.parse(func_string)
             except ParserError as e:
                 self.main_widget.update_syntax_error_message(str(e))
