@@ -10,12 +10,26 @@ class XRangeError(Exception):
 
 
 class Plotter(object):
-    def __init__(self):
-        pass
+    """
+    Represents a Plotter service. The Plotter validates the x range, generates
+    valid x-values and evaluates the give expression to get the y-values.
+    """
     
     def validate_x_range(self, x_min, x_max):
         """
-        Validates the x range and raises an XRangeError if invalid
+        Validates the x range and raises an XRangeError if invalid.
+
+        Parameters
+        ----------
+        x_min : float
+            The minimum value of x
+        x_max : float
+            The maximum value of x
+        
+        Raises
+        ------
+        XRangeError
+            Invalid range
         """
 
         if x_max <= x_min:
@@ -23,10 +37,30 @@ class Plotter(object):
 
     def plot(self, tree, x_min, x_max, x_tick_frequency=1000):
         """
-        Evaluates the given expression tree on the given x range with the given
-        tick frequency (defaults to 1000).
+        Plots the expression on the given x range.
 
-        Returns x and y numpy arrays in a tuple
+        Parameters
+        ----------
+        tree : ExprTNode
+            The expression representing the function to plot
+        x_min : float
+            The minimum value of x
+        x_max : float
+            The maximum value of x
+        x_tick_frequency : int
+            The tick frequency of the x-axis, i.e. how many points to plot
+        
+        Returns
+        -------
+        x : numpy.ndarray
+            The x values of the points
+        y : numpy.ndarray
+            The y values of the points
+        
+        Raises
+        ------
+        XRangeError
+            Invalid range
         """
 
         self.validate_x_range(x_min, x_max)
