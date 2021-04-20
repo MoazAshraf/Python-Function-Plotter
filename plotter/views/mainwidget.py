@@ -85,6 +85,13 @@ class MainWidget(QWidget):
         self.axis_range_widget.setMaximumWidth(320)
         self.layout.addWidget(self.axis_range_widget,
             alignment=QtCore.Qt.AlignHCenter)
+        
+        # range error message widget
+        self.range_error_label = QLabel()
+        self.range_error_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.range_error_label.setVisible(False)
+        self.range_error_label.setStyleSheet("color: red")
+        self.layout.addWidget(self.range_error_label)
 
         # matplotlib canvas widget
         self.plot_widget = MplCanvasWidget()
@@ -98,12 +105,12 @@ class MainWidget(QWidget):
         self.layout.addWidget(self.func_widget,
             alignment=QtCore.Qt.AlignHCenter)
 
-        # error message widget
-        self.message_label = QLabel()
-        self.message_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.message_label.setVisible(False)
-        self.message_label.setStyleSheet("color: red")
-        self.layout.addWidget(self.message_label)
+        # syntax error message widget
+        self.syntax_error_label = QLabel()
+        self.syntax_error_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.syntax_error_label.setVisible(False)
+        self.syntax_error_label.setStyleSheet("color: red")
+        self.layout.addWidget(self.syntax_error_label)
 
         # connect signals to slots
         self.func_widget.plot_button.clicked.connect(self._on_plot_button_clicked)
@@ -126,13 +133,21 @@ class MainWidget(QWidget):
 
         return self.axis_range_widget.get_x_values()
 
-    def update_message(self, string):
+    def update_range_error_message(self, string=""):
         """
-        Updates the message label
+        Updates the range error message label
         """
 
-        self.message_label.setText(string)
-        self.message_label.setVisible(True if string else False)
+        self.range_error_label.setText(string)
+        self.range_error_label.setVisible(True if string else False)
+
+    def update_syntax_error_message(self, string=""):
+        """
+        Updates the syntax error message label
+        """
+
+        self.syntax_error_label.setText(string)
+        self.syntax_error_label.setVisible(True if string else False)
     
     def render_plot(self, x, y):
         """
