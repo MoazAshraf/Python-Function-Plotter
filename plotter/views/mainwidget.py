@@ -3,12 +3,13 @@
 ## architecture.
 
 from PySide2 import QtCore
-from PySide2.QtCore import Slot, Signal
+from PySide2.QtCore import Slot, Signal, QLocale
 from PySide2.QtWidgets import (
-    QWidget, QLabel, QTextEdit, QPushButton,
+    QWidget, QLabel, QTextEdit, QLineEdit, QPushButton,
     QLayout, QVBoxLayout, QHBoxLayout,
     QSizePolicy
     )
+from PySide2.QtGui import QDoubleValidator
 from .mplwidget import MplCanvasWidget
 
 
@@ -35,7 +36,23 @@ class CustomWidget(QWidget):
         self.x_min_label = QLabel(text)
         self.layout.addWidget(self.x_min_label)
 
-    def _add_text_input(self, text="0"):
+    def _add_line_edit(self, text=""):
+        lineedit = QLineEdit(text)
+        lineedit.setMaximumHeight(28)
+        lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        lineedit.setAlignment(QtCore.Qt.AlignLeft)
+        self.layout.addWidget(lineedit)
+        return lineedit
+    
+    def _add_float_line_edit(self, text="0",
+            min_val=float('-inf'), max_val=float('inf'), decimals=100):
+        validator = QDoubleValidator(min_val, max_val, decimals)
+        validator.setLocale(QLocale.English)
+        numedit = self._add_line_edit(text)
+        numedit.setValidator(validator)
+        return numedit
+
+    def _add_text_edit(self, text=""):
         textedit = QTextEdit(text)
         textedit.setMaximumHeight(28)
         textedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -58,10 +75,10 @@ class AxisRangeWidget(CustomWidget):
         super().__init__(QHBoxLayout(), *args, **kwargs)
 
         self.x_min_label = self._add_label("X Min:")
-        self.x_min_input = self._add_text_input()
+        self.x_min_input = self._add_float_line_edit()
 
         self.x_max_label = self._add_label("X Max:")
-        self.x_max_input = self._add_text_input("1")
+        self.x_max_input = self._add_float_line_edit("1")
     
     def get_x_values(self):
         """
@@ -81,12 +98,12 @@ class AxisRangeWidget(CustomWidget):
         """
 
         try:
-            x_min = float(self.x_min_input.toPlainText())
+            x_min = float(self.x_min_input.text())
         except ValueError:
             raise ValueError("X Min must be a number")
 
         try:
-            x_max = float(self.x_max_input.toPlainText())
+            x_max = float(self.x_max_input.text())
         except ValueError:
             raise ValueError("X Max must be a number")
 
@@ -103,7 +120,7 @@ class FunctionWidget(CustomWidget):
 
         self.func_label = self._add_label("f(x) = ")
 
-        self.func_input = self._add_text_input()
+        self.func_input = self._add_line_edit()
         self.func_input.setPlaceholderText("e.g. x^2")
 
         self.plot_button = self._add_button("Plot")
@@ -176,7 +193,7 @@ class MainWidget(QWidget):
             The function input text
         """
 
-        return self.func_widget.func_input.toPlainText()
+        return self.func_widget.func_input.text()
     
     def get_x_range(self):
         """
