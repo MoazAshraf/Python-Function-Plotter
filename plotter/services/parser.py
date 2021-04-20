@@ -326,7 +326,7 @@ class Parser(object):
         Raises
         ------
         ParserError
-            Unopened parenthesis or empty parenthesis
+            Unopened parenthesis or empty parentheses
         """
 
         i = closing_index
@@ -343,7 +343,7 @@ class Parser(object):
         j += 1
 
         if j == i-1:
-            raise ParserError("Empty parenthesis")
+            raise ParserError("Empty parentheses")
 
         if not stack:
             return j
