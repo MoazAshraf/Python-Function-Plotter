@@ -12,11 +12,23 @@ from PySide2.QtWidgets import (
 from .mplwidget import MplCanvasWidget
 
 
-class CustomHBoxWidget(QWidget):
-    def __init__(self, *args, **kwargs):
+class CustomWidget(QWidget):
+    """
+    Helper widget base class used to add UI elements with the same style to
+    avoid writing too much boilerplate code.
+    """
+
+    def __init__(self, layout, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        layout : QLayout
+            The layout to use for this widget
+        """
+
         super().__init__(*args, **kwargs)
 
-        self.layout = QHBoxLayout()
+        self.layout = layout
         self.setLayout(self.layout)
 
     def _add_label(self, text=""):
@@ -37,9 +49,13 @@ class CustomHBoxWidget(QWidget):
         return button
 
 
-class AxisRangeWidget(CustomHBoxWidget):
+class AxisRangeWidget(CustomWidget):
+    """
+    The X min and max inputs widget
+    """
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(QHBoxLayout(), *args, **kwargs)
 
         self.x_min_label = self._add_label("X Min:")
         self.x_min_input = self._add_text_input()
@@ -49,17 +65,41 @@ class AxisRangeWidget(CustomHBoxWidget):
     
     def get_x_values(self):
         """
-        Returns the x range values in a tuple as (x_min, x_max)
+        Reads the x range values as floats
+        
+        Returns
+        -------
+        x_min : float
+            The value of the x min input
+        x_max : float
+            The value of the x max input
+        
+        Raises
+        ------
+        ValueError
+            User entered a string that doesn't represent a float
         """
-        x_min = float(self.x_min_input.toPlainText())
-        x_max = float(self.x_max_input.toPlainText())
+
+        try:
+            x_min = float(self.x_min_input.toPlainText())
+        except ValueError:
+            raise ValueError("X Min must be a number")
+
+        try:
+            x_max = float(self.x_max_input.toPlainText())
+        except ValueError:
+            raise ValueError("X Max must be a number")
 
         return x_min, x_max
 
 
-class FunctionWidget(CustomHBoxWidget):
+class FunctionWidget(CustomWidget):
+    """
+    The widget containing the function text input and the plot button
+    """
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(QHBoxLayout(), *args, **kwargs)
 
         self.func_label = self._add_label("f(x) = ")
 
@@ -70,6 +110,15 @@ class FunctionWidget(CustomHBoxWidget):
 
 
 class MainWidget(QWidget):
+    """
+    The main widget rendered directly by the application. It contains:
+    - Axis range widget
+    - Range error label
+    - Matplotlib widget
+    - Function widget
+    - Syntax error label
+    """
+
     # define signals
     on_plot = Signal()
 
@@ -121,21 +170,37 @@ class MainWidget(QWidget):
     
     def get_input_string(self):
         """
-        Returns the function input string
+        Returns
+        -------
+        func_text : str
+            The function input text
         """
 
         return self.func_widget.func_input.toPlainText()
     
     def get_x_range(self):
         """
-        Returns the x min and max values as floats
+        Reads the x range values as floats
+        
+        Returns
+        -------
+        x_min : float
+            The value of the x min input
+        x_max : float
+            The value of the x max input
         """
 
         return self.axis_range_widget.get_x_values()
 
     def update_range_error_message(self, string=""):
         """
-        Updates the range error message label
+        Updates the range error message label. If the string is empty, makes the
+        message invisible.
+
+        Parameters
+        ----------
+        string : str
+            Defaults to ""
         """
 
         self.range_error_label.setText(string)
@@ -143,7 +208,13 @@ class MainWidget(QWidget):
 
     def update_syntax_error_message(self, string=""):
         """
-        Updates the syntax error message label
+        Updates the syntax error message label. If the string is empty, makes the
+        message invisible.
+
+        Parameters
+        ----------
+        string : str
+            Defaults to ""
         """
 
         self.syntax_error_label.setText(string)
@@ -152,6 +223,13 @@ class MainWidget(QWidget):
     def render_plot(self, x, y):
         """
         Renders the plot provided by the x and y values
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            The x values of the points to plot
+        y : numpy.ndarray
+            The y values of the points to plot
         """
 
         self.plot_widget.render_plot(x, y)
